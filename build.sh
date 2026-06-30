@@ -16,6 +16,28 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# ----------------------------------------------------------
+# Homebrew + Flutter PATH laden
+# ----------------------------------------------------------
+if [[ -f /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -f /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Flutter aus Homebrew Cask finden
+if ! command -v flutter &>/dev/null; then
+    FLUTTER_PATH="$(find /opt/homebrew/Caskroom/flutter /usr/local/Caskroom/flutter -name flutter -type f 2>/dev/null | grep '/bin/flutter$' | head -1)"
+    if [[ -n "$FLUTTER_PATH" ]]; then
+        export PATH="$PATH:$(dirname "$FLUTTER_PATH")"
+    fi
+fi
+
+# Flutter aus .zprofile laden
+if ! command -v flutter &>/dev/null; then
+    source ~/.zprofile 2>/dev/null || true
+fi
+
 echo ""
 echo "=========================================="
 echo "  Oldtimer KM-Log — Build"
@@ -28,13 +50,16 @@ echo ""
 if ! command -v flutter &>/dev/null; then
     echo -e "${RED}✗ Flutter ist nicht installiert!${NC}"
     echo "  Führe zuerst ./setup.sh aus."
+    echo "  Falls du setup.sh schon ausgeführt hast:"
+    echo "  Schließe das Terminal, öffne ein neues und versuche es erneut."
     exit 1
 fi
 
+echo -e "${GREEN}✓ Flutter gefunden: $(which flutter)${NC}"
+
 if [ ! -d "ios" ]; then
-    echo -e "${RED}✗ iOS-Ordner fehlt!${NC}"
-    echo "  Führe zuerst ./setup.sh aus."
-    exit 1
+    echo -e "${YELLOW}→ iOS-Ordner fehlt, wird generiert…${NC}"
+    flutter create --org com.oldtimer .
 fi
 
 if [ ! -f "ios/Podfile.lock" ]; then

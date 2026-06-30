@@ -12,6 +12,15 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# ----------------------------------------------------------
+# Homebrew PATH laden (Apple Silicon + Intel)
+# ----------------------------------------------------------
+if [[ -f /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -f /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
 echo ""
 echo "=========================================="
 echo "  Oldtimer KM-Log — Setup"
@@ -27,10 +36,11 @@ else
     echo -e "${YELLOW}→ Homebrew wird installiert…${NC}"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    # Homebrew zum PATH hinzufügen (Apple Silicon)
     if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+    elif [[ -f /usr/local/bin/brew ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
     fi
     echo -e "${GREEN}✓ Homebrew installiert${NC}"
 fi
@@ -67,7 +77,7 @@ fi
 # 4. CocoaPods prüfen / installieren
 # ----------------------------------------------------------
 if command -v pod &>/dev/null; then
-    echo -e "${GREEN}✓ CocoaPods ist installiert$(pod --version 2>/dev/null | head -1 | sed 's/^/ (v/')$(pod --version 2>/dev/null | head -1 | sed 's/.*/)/' | head -c 0 && pod --version 2>/dev/null | head -1 | awk '{print " (v"$1")"}'  2>/dev/null || echo '')${NC}"
+    echo -e "${GREEN}✓ CocoaPods ist installiert${NC}"
 else
     echo -e "${YELLOW}→ CocoaPods wird installiert…${NC}"
     brew install cocoapods
@@ -78,17 +88,38 @@ fi
 # 5. Flutter SDK prüfen / installieren
 # ----------------------------------------------------------
 if command -v flutter &>/dev/null; then
-    echo -e "${GREEN}✓ Flutter ist installiert$(flutter --version 2>/dev/null | head -1 | awk '{print " (v"$2")"}'  || echo '')${NC}"
+    echo -e "${GREEN}✓ Flutter ist installiert${NC}"
 else
     echo -e "${YELLOW}→ Flutter wird installiert…${NC}"
     brew install --cask flutter
 
-    # Flutter zum PATH hinzufügen
-    export PATH="$PATH:$(brew --prefix)/Caskroom/flutter/*/flutter/bin"
+    # Flutter-Pfad finden und zum PATH hinzufügen
+    FLUTTER_PATH="$(find $(brew --prefix)/Caskroom/flutter -name flutter -type f 2>/dev/null | grep '/bin/flutter$' | head -1)"
+    if [[ -n "$FLUTTER_PATH" ]]; then
+        FLUTTER_BIN_DIR="$(dirname "$FLUTTER_PATH")"
+        export PATH="$PATH:$FLUTTER_BIN_DIR"
+
+        # Dauerhaft in .zprofile speichern
+        if ! grep -q "flutter" ~/.zprofile 2>/dev/null; then
+            echo "export PATH=\"\$PATH:$FLUTTER_BIN_DIR\"" >> ~/.zprofile
+        fi
+    fi
 
     echo -e "${GREEN}✓ Flutter installiert${NC}"
-    echo -e "${YELLOW}  Hinweis: Starte ein neues Terminal oder führe 'source ~/.zprofile' aus,${NC}"
-    echo -e "${YELLOW}  damit 'flutter' im PATH verfügbar ist.${NC}"
+fi
+
+# Sicherstellen dass flutter jetzt im PATH ist
+if ! command -v flutter &>/dev/null; then
+    FLUTTER_PATH="$(find /opt/homebrew/Caskroom/flutter /usr/local/Caskroom/flutter -name flutter -type f 2>/dev/null | grep '/bin/flutter$' | head -1)"
+    if [[ -n "$FLUTTER_PATH" ]]; then
+        export PATH="$PATH:$(dirname "$FLUTTER_PATH")"
+    fi
+fi
+
+if ! command -v flutter &>/dev/null; then
+    echo -e "${RED}✗ Flutter konnte nicht gefunden werden!${NC}"
+    echo "  Schließe das Terminal, öffne ein neues und führe ./setup.sh erneut aus."
+    exit 1
 fi
 
 # ----------------------------------------------------------
@@ -96,8 +127,7 @@ fi
 # ----------------------------------------------------------
 echo ""
 echo -e "${YELLOW}→ Prüfe Flutter-Umgebung…${NC}"
-flutter doctor --android-licenses 2>/dev/null || true
-flutter doctor -v 2>&1 | head -30
+flutter doctor 2>&1 | head -20
 echo ""
 
 # ----------------------------------------------------------
