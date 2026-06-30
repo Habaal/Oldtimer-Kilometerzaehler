@@ -1,0 +1,49 @@
+name: oldtimer_km_log
+description: Automatische Kilometererfassung per GPS für Oldtimer-Fahrzeuge.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^3.1.0
+
+  # Datenbank
+  sqflite: ^2.4.1
+  path: ^1.9.0
+
+  # Standort & Hintergrund-Service
+  geolocator: ^13.0.2
+  flutter_foreground_task: ^9.0.0
+  geocoding: ^3.0.0
+  permission_handler: ^11.4.0
+
+  # UI & Diagramme
+  fl_chart: ^0.70.2
+  intl: ^0.20.2
+
+  # Export
+  pdf: ^3.12.0
+  printing: ^5.14.0
+  csv: ^6.0.0
+  share_plus: ^10.1.4
+
+  # Fahrzeugfoto
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
+
+  # Hilfsmittel
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
