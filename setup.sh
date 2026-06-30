@@ -123,7 +123,14 @@ if ! command -v flutter &>/dev/null; then
 fi
 
 # ----------------------------------------------------------
-# 6. Flutter Doctor
+# 6. Swift Package Manager deaktivieren (CocoaPods verwenden)
+# ----------------------------------------------------------
+echo -e "${YELLOW}→ Swift Package Manager wird deaktiviert (CocoaPods stattdessen)…${NC}"
+flutter config --no-enable-swift-package-manager 2>/dev/null || true
+echo -e "${GREEN}✓ CocoaPods als Build-System konfiguriert${NC}"
+
+# ----------------------------------------------------------
+# 7. Flutter Doctor
 # ----------------------------------------------------------
 echo ""
 echo -e "${YELLOW}→ Prüfe Flutter-Umgebung…${NC}"
@@ -131,7 +138,7 @@ flutter doctor 2>&1 | head -20
 echo ""
 
 # ----------------------------------------------------------
-# 7. Flutter-Projekt generieren (ios/ Ordner erstellen)
+# 8. Flutter-Projekt generieren (ios/ Ordner erstellen)
 # ----------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -141,14 +148,23 @@ flutter create --org com.oldtimer . 2>&1 | tail -5
 echo -e "${GREEN}✓ Flutter-Projekt initialisiert${NC}"
 
 # ----------------------------------------------------------
-# 8. Abhängigkeiten installieren
+# 9. SPM-Reste entfernen falls vorhanden
+# ----------------------------------------------------------
+if [ -d "ios/Flutter/ephemeral/Packages" ]; then
+    echo -e "${YELLOW}→ SPM-Dateien werden entfernt…${NC}"
+    rm -rf ios/Flutter/ephemeral/Packages
+    rm -rf ios/Flutter/ephemeral/.build
+fi
+
+# ----------------------------------------------------------
+# 10. Abhängigkeiten installieren
 # ----------------------------------------------------------
 echo -e "${YELLOW}→ Flutter-Pakete werden installiert…${NC}"
 flutter pub get
 echo -e "${GREEN}✓ Flutter-Pakete installiert${NC}"
 
 # ----------------------------------------------------------
-# 9. iOS Pods installieren
+# 11. iOS Pods installieren
 # ----------------------------------------------------------
 echo -e "${YELLOW}→ CocoaPods werden installiert…${NC}"
 cd ios

@@ -47,6 +47,11 @@ if ! command -v flutter &>/dev/null; then
 fi
 
 # ----------------------------------------------------------
+# Swift Package Manager deaktivieren (CocoaPods verwenden)
+# ----------------------------------------------------------
+flutter config --no-enable-swift-package-manager 2>/dev/null || true
+
+# ----------------------------------------------------------
 # iOS-Ordner prüfen
 # ----------------------------------------------------------
 if [ ! -d "ios" ]; then

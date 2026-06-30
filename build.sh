@@ -57,6 +57,11 @@ fi
 
 echo -e "${GREEN}✓ Flutter gefunden: $(which flutter)${NC}"
 
+# ----------------------------------------------------------
+# Swift Package Manager deaktivieren (CocoaPods verwenden)
+# ----------------------------------------------------------
+flutter config --no-enable-swift-package-manager 2>/dev/null || true
+
 if [ ! -d "ios" ]; then
     echo -e "${YELLOW}→ iOS-Ordner fehlt, wird generiert…${NC}"
     flutter create --org com.oldtimer .
