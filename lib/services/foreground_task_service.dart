@@ -1,10 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:geolocator/geolocator.dart';
-
-import '../core/constants.dart';
-import 'trip_detection_service.dart';
 
 class ForegroundTaskService {
   ForegroundTaskService._();
@@ -23,7 +19,7 @@ class ForegroundTaskService {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(5000),
+        eventAction: ForegroundTaskEventAction.repeat(30000),
         autoRunOnBoot: false,
         autoRunOnMyPackageReplaced: true,
         allowWakeLock: true,
@@ -58,153 +54,26 @@ class ForegroundTaskService {
     return FlutterForegroundTask.isRunningService;
   }
 
-  /// Sendet Daten an den TaskHandler (z.B. aktive vehicleId).
-  static void datenAnTaskSenden(Map<String, dynamic> daten) {
-    FlutterForegroundTask.sendDataToTask(daten);
+  static void notificationAktualisieren(String text) {
+    FlutterForegroundTask.updateService(notificationText: text);
   }
 }
 
 @pragma('vm:entry-point')
 void _startCallback() {
-  FlutterForegroundTask.setTaskHandler(KmTrackingTaskHandler());
+  FlutterForegroundTask.setTaskHandler(_KeepAliveTaskHandler());
 }
 
-/// Hauptlogik des Hintergrund-Tracking-Dienstes.
-/// Wird vom Foreground Service aufgerufen, läuft auch bei gesperrtem Bildschirm.
-class KmTrackingTaskHandler extends TaskHandler {
-  TripDetectionService? _tripDetection;
-  String? _vehicleId;
-  bool _istFirmenfahrt = false;
-  double? _kilometerstandStart;
-  DateTime? _letzteGpsAbfrage;
+class _KeepAliveTaskHandler extends TaskHandler {
+  @override
+  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {}
 
   @override
-  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    _tripDetection = TripDetectionService(
-      onZustandGeaendert: (zustand) {
-        FlutterForegroundTask.sendDataToMain({
-          'type': 'zustand',
-          'zustand': zustand.name,
-        });
-      },
-      onDistanzAktualisiert: (tripId, distanz) {
-        FlutterForegroundTask.updateService(
-          notificationText:
-              'Fahrt aktiv – ${distanz.toStringAsFixed(1)} km',
-        );
-        FlutterForegroundTask.sendDataToMain({
-          'type': 'distanz',
-          'tripId': tripId,
-          'distanzKm': distanz,
-        });
-      },
-      onTripGestartet: (tripId) {
-        FlutterForegroundTask.sendDataToMain({
-          'type': 'tripGestartet',
-          'tripId': tripId,
-        });
-      },
-      onTripBeendet: (tripId, gesamtKm) {
-        FlutterForegroundTask.sendDataToMain({
-          'type': 'tripBeendet',
-          'tripId': tripId,
-          'gesamtKm': gesamtKm,
-        });
-      },
-    );
-  }
+  void onRepeatEvent(DateTime timestamp) async {}
 
   @override
-  void onRepeatEvent(DateTime timestamp) async {
-    if (_tripDetection == null) return;
-
-    // GPS-Intervall je nach Zustand anpassen
-    final intervall = _gpsIntervall();
-    if (_letzteGpsAbfrage != null &&
-        timestamp.difference(_letzteGpsAbfrage!) < intervall) {
-      return;
-    }
-    _letzteGpsAbfrage = timestamp;
-
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(
-          accuracy: _gpsGenauigkeit(),
-        ),
-      );
-      FlutterForegroundTask.sendDataToMain({
-        'type': 'position',
-        'lat': position.latitude,
-        'lng': position.longitude,
-        'speed': position.speed,
-      });
-      await _tripDetection!.positionVerarbeiten(position);
-    } catch (_) {}
-  }
+  void onReceiveData(Object data) {}
 
   @override
-  void onReceiveData(Object data) {
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('vehicleId')) {
-        _vehicleId = data['vehicleId'] as String?;
-        _istFirmenfahrt = data['istFirmenfahrt'] as bool? ?? false;
-        _kilometerstandStart = (data['kilometerstandStart'] as num?)?.toDouble();
-        _tripDetection?.fahrtTypSetzen(
-          istFirmenfahrt: _istFirmenfahrt,
-          kilometerstandStart: _kilometerstandStart,
-        );
-      }
-      if (data['action'] == 'manuellStarten' && _vehicleId != null) {
-        _manuellStarten();
-      }
-      if (data['action'] == 'manuellStoppen') {
-        _tripDetection?.manuellStoppen();
-      }
-    }
-  }
-
-  Future<void> _manuellStarten() async {
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-      await _tripDetection?.manuellStarten(_vehicleId!, position);
-    } catch (_) {}
-  }
-
-  @override
-  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
-    await _tripDetection?.erzwungenStoppen();
-  }
-
-  Duration _gpsIntervall() {
-    switch (_tripDetection?.zustand) {
-      case TrackingZustand.idle:
-        return TrackingConstants.idleGpsInterval;
-      case TrackingZustand.detecting:
-        return TrackingConstants.detectingGpsInterval;
-      case TrackingZustand.tripActive:
-        return TrackingConstants.activeGpsInterval;
-      case TrackingZustand.stopping:
-        return TrackingConstants.stoppingGpsInterval;
-      case null:
-        return TrackingConstants.idleGpsInterval;
-    }
-  }
-
-  LocationAccuracy _gpsGenauigkeit() {
-    switch (_tripDetection?.zustand) {
-      case TrackingZustand.idle:
-        return LocationAccuracy.low;
-      case TrackingZustand.detecting:
-      case TrackingZustand.tripActive:
-        return LocationAccuracy.high;
-      case TrackingZustand.stopping:
-        return LocationAccuracy.medium;
-      case null:
-        return LocationAccuracy.low;
-    }
-  }
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
 }

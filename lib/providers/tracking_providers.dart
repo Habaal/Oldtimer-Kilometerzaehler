@@ -1,5 +1,5 @@
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../services/foreground_task_service.dart';
 import '../services/geocoding_service.dart';
@@ -69,6 +69,8 @@ final trackingControllerProvider =
 
 class TrackingController {
   final Ref _ref;
+  TripDetectionService? _tripDetection;
+  String? _vehicleId;
 
   TrackingController(this._ref);
 
@@ -82,20 +84,46 @@ class TrackingController {
     final erlaubt = await locationService.berechtigungPruefen();
     if (!erlaubt) return false;
 
+    _vehicleId = vehicleId;
+
+    _tripDetection = TripDetectionService(
+      onZustandGeaendert: (zustand) {
+        _ref.read(trackingZustandProvider.notifier).state = zustand;
+      },
+      onDistanzAktualisiert: (tripId, distanz) {
+        _ref.read(aktuelleDistanzProvider.notifier).state = distanz;
+        _ref.read(aktuellerTripIdProvider.notifier).state = tripId;
+        ForegroundTaskService.notificationAktualisieren(
+          'Fahrt aktiv – ${distanz.toStringAsFixed(1)} km',
+        );
+      },
+      onTripGestartet: (tripId) {
+        _ref.read(aktuellerTripIdProvider.notifier).state = tripId;
+        _ref.read(aktuelleDistanzProvider.notifier).state = 0.0;
+      },
+      onTripBeendet: (tripId, gesamtKm) {
+        _ref.read(aktuellerTripIdProvider.notifier).state = null;
+        _ref.read(aktuelleDistanzProvider.notifier).state = 0.0;
+      },
+    );
+
+    _tripDetection!.fahrtTypSetzen(
+      istFirmenfahrt: istFirmenfahrt,
+      kilometerstandStart: kilometerstandStart,
+    );
+
     ForegroundTaskService.init();
     final gestartet = await ForegroundTaskService.starten(fahrzeugName);
     if (gestartet) {
       _ref.read(serviceAktivProvider.notifier).state = true;
-      ForegroundTaskService.datenAnTaskSenden({
-        'vehicleId': vehicleId,
-        'istFirmenfahrt': istFirmenfahrt,
-        'kilometerstandStart': kilometerstandStart,
-      });
     }
     return gestartet;
   }
 
   Future<void> stoppen() async {
+    await _tripDetection?.erzwungenStoppen();
+    _tripDetection = null;
+    _vehicleId = null;
     await ForegroundTaskService.stoppen();
     _ref.read(serviceAktivProvider.notifier).state = false;
     _ref.read(trackingZustandProvider.notifier).state = TrackingZustand.idle;
@@ -105,51 +133,29 @@ class TrackingController {
     _ref.read(aktuellerOrtProvider.notifier).state = null;
   }
 
-  void manuellStarten() {
-    ForegroundTaskService.datenAnTaskSenden({'action': 'manuellStarten'});
+  void positionVerarbeiten(Position position) {
+    _tripDetection?.positionVerarbeiten(position);
   }
 
-  void manuellStoppen() {
-    ForegroundTaskService.datenAnTaskSenden({'action': 'manuellStoppen'});
+  Future<void> manuellStarten() async {
+    if (_tripDetection == null || _vehicleId == null) return;
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      await _tripDetection!.manuellStarten(_vehicleId!, position);
+    } catch (_) {}
   }
 
-  void datenVerarbeiten(Map<String, dynamic> daten) {
-    switch (daten['type']) {
-      case 'zustand':
-        final name = daten['zustand'] as String;
-        final zustand = TrackingZustand.values.firstWhere(
-          (z) => z.name == name,
-          orElse: () => TrackingZustand.idle,
-        );
-        _ref.read(trackingZustandProvider.notifier).state = zustand;
-
-      case 'distanz':
-        _ref.read(aktuelleDistanzProvider.notifier).state =
-            (daten['distanzKm'] as num).toDouble();
-        _ref.read(aktuellerTripIdProvider.notifier).state =
-            daten['tripId'] as String?;
-
-      case 'tripGestartet':
-        _ref.read(aktuellerTripIdProvider.notifier).state =
-            daten['tripId'] as String?;
-        _ref.read(aktuelleDistanzProvider.notifier).state = 0.0;
-
-      case 'tripBeendet':
-        _ref.read(aktuellerTripIdProvider.notifier).state = null;
-        _ref.read(aktuelleDistanzProvider.notifier).state = 0.0;
-
-      case 'position':
-        final lat = (daten['lat'] as num).toDouble();
-        final lng = (daten['lng'] as num).toDouble();
-        final speed = (daten['speed'] as num?)?.toDouble() ?? 0.0;
-        _ref.read(aktuellePositionProvider.notifier).state = (lat: lat, lng: lng, speed: speed);
-        _ortAktualisieren(lat, lng);
-    }
+  Future<void> manuellStoppen() async {
+    await _tripDetection?.manuellStoppen();
   }
 
   DateTime? _letzteOrtAbfrage;
 
-  void _ortAktualisieren(double lat, double lng) async {
+  void ortAktualisieren(double lat, double lng) async {
     final jetzt = DateTime.now();
     if (_letzteOrtAbfrage != null &&
         jetzt.difference(_letzteOrtAbfrage!) < const Duration(seconds: 15)) {

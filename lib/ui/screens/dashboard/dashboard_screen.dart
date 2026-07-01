@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -11,7 +10,6 @@ import '../../../providers/tracking_providers.dart';
 import '../../../data/models/vehicle.dart';
 import '../../../providers/vehicle_providers.dart';
 import '../../../core/utils/haversine.dart';
-import '../../../services/geocoding_service.dart';
 import '../../shared/loading_indicator.dart';
 import 'widgets/active_vehicle_card.dart';
 import 'widgets/km_progress_card.dart';
@@ -28,7 +26,6 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   StreamSubscription<Position>? _positionSub;
-  DateTime? _letzteOrtAbfrage;
   bool _streamLaeuft = false;
   Position? _vorherigeStreamPos;
   DateTime? _vorherigeStreamZeit;
@@ -36,7 +33,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    FlutterForegroundTask.addTaskDataCallback(_onTaskDaten);
     _standortBerechtigung();
   }
 
@@ -45,7 +41,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     if (permission == LocationPermission.always) return;
 
-    // Schritt 1: Erklärung zeigen, warum "Immer erlauben" nötig ist
     if (permission == LocationPermission.denied) {
       if (!mounted) return;
       await showDialog(
@@ -63,7 +58,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
       );
 
-      // Schritt 2: Erste Anfrage ("Beim Verwenden erlauben")
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
@@ -71,12 +65,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
     }
 
-    // Schritt 3: Upgrade auf "Immer erlauben" versuchen
     if (permission == LocationPermission.whileInUse) {
       permission = await Geolocator.requestPermission();
     }
 
-    // Schritt 4: Falls immer noch nicht "Immer" — Hinweis mit Einstellungs-Link
     if (permission != LocationPermission.always && mounted) {
       await showDialog(
         context: context,
@@ -108,7 +100,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void dispose() {
     _positionSub?.cancel();
-    FlutterForegroundTask.removeTaskDataCallback(_onTaskDaten);
     super.dispose();
   }
 
@@ -126,6 +117,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _streamLaeuft = false;
       _positionSub?.cancel();
       _positionSub = null;
+      _vorherigeStreamPos = null;
+      _vorherigeStreamZeit = null;
     }
   }
 
@@ -156,26 +149,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       lng: pos.longitude,
       speed: speedMs,
     );
-    _ortAktualisieren(pos.latitude, pos.longitude);
-  }
 
-  void _ortAktualisieren(double lat, double lng) async {
-    final jetzt = DateTime.now();
-    if (_letzteOrtAbfrage != null &&
-        jetzt.difference(_letzteOrtAbfrage!) < const Duration(seconds: 15)) {
-      return;
-    }
-    _letzteOrtAbfrage = jetzt;
-    final ort = await GeocodingService().ortsnameVonKoordinaten(lat, lng);
-    if (mounted) {
-      ref.read(aktuellerOrtProvider.notifier).state = ort;
-    }
-  }
-
-  void _onTaskDaten(Object data) {
-    if (data is Map<String, dynamic>) {
-      ref.read(trackingControllerProvider).datenVerarbeiten(data);
-    }
+    final controller = ref.read(trackingControllerProvider);
+    controller.positionVerarbeiten(pos);
+    controller.ortAktualisieren(pos.latitude, pos.longitude);
   }
 
   @override
@@ -186,7 +163,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final distanz = ref.watch(aktuelleDistanzProvider);
     final position = ref.watch(aktuellePositionProvider);
     final ortsname = ref.watch(aktuellerOrtProvider);
-    final vehicles = ref.watch(vehiclesProvider);
 
     _positionStreamVerwalten(serviceAktiv);
 
