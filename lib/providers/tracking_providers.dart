@@ -4,20 +4,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/foreground_task_service.dart';
 import '../services/trip_detection_service.dart';
 
-/// Aktueller Tracking-Zustand.
 final trackingZustandProvider =
-    StateProvider<TrackingZustand>((ref) => TrackingZustand.idle);
+    NotifierProvider<_TrackingZustandNotifier, TrackingZustand>(
+  _TrackingZustandNotifier.new,
+);
 
-/// Ob der Foreground-Service gerade läuft.
-final serviceAktivProvider = StateProvider<bool>((ref) => false);
+class _TrackingZustandNotifier extends Notifier<TrackingZustand> {
+  @override
+  TrackingZustand build() => TrackingZustand.idle;
+}
 
-/// Aktuelle Distanz des laufenden Trips (in km).
-final aktuelleDistanzProvider = StateProvider<double>((ref) => 0.0);
+final serviceAktivProvider =
+    NotifierProvider<_ServiceAktivNotifier, bool>(_ServiceAktivNotifier.new);
 
-/// Aktuelle Trip-ID (wenn Trip läuft).
-final aktuellerTripIdProvider = StateProvider<String?>((ref) => null);
+class _ServiceAktivNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+}
 
-/// Controller für Tracking-Aktionen.
+final aktuelleDistanzProvider =
+    NotifierProvider<_AktuelleDistanzNotifier, double>(
+  _AktuelleDistanzNotifier.new,
+);
+
+class _AktuelleDistanzNotifier extends Notifier<double> {
+  @override
+  double build() => 0.0;
+}
+
+final aktuellerTripIdProvider =
+    NotifierProvider<_AktuellerTripIdNotifier, String?>(
+  _AktuellerTripIdNotifier.new,
+);
+
+class _AktuellerTripIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+}
+
 final trackingControllerProvider =
     Provider<TrackingController>((ref) => TrackingController(ref));
 
@@ -26,7 +50,6 @@ class TrackingController {
 
   TrackingController(this._ref);
 
-  /// Startet den Tracking-Service für ein Fahrzeug.
   Future<void> starten(String vehicleId, String fahrzeugName) async {
     ForegroundTaskService.init();
     final gestartet = await ForegroundTaskService.starten(fahrzeugName);
@@ -36,7 +59,6 @@ class TrackingController {
     }
   }
 
-  /// Stoppt den Tracking-Service.
   Future<void> stoppen() async {
     await ForegroundTaskService.stoppen();
     _ref.read(serviceAktivProvider.notifier).state = false;
@@ -45,17 +67,14 @@ class TrackingController {
     _ref.read(aktuellerTripIdProvider.notifier).state = null;
   }
 
-  /// Startet einen Trip manuell.
   void manuellStarten() {
     ForegroundTaskService.datenAnTaskSenden({'action': 'manuellStarten'});
   }
 
-  /// Stoppt den aktuellen Trip manuell.
   void manuellStoppen() {
     ForegroundTaskService.datenAnTaskSenden({'action': 'manuellStoppen'});
   }
 
-  /// Verarbeitet Daten vom TaskHandler (aufgerufen in der UI).
   void datenVerarbeiten(Map<String, dynamic> daten) {
     switch (daten['type']) {
       case 'zustand':

@@ -42,7 +42,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           }
 
           final vehicleId = _selectedVehicleId ??
-              activeVehicle.valueOrNull?.id ??
+              activeVehicle.value?.id ??
               vehicleList.first.id;
 
           final vehicle = vehicleList.firstWhere((v) => v.id == vehicleId);

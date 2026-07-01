@@ -48,7 +48,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
           }
 
           final vehicleId = _selectedVehicleId ??
-              activeVehicle.valueOrNull?.id ??
+              activeVehicle.value?.id ??
               vehicleList.first.id;
 
           final filter = TripsFilter(

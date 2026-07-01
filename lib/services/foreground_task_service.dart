@@ -34,15 +34,17 @@ class ForegroundTaskService {
   }
 
   static Future<bool> starten(String fahrzeugName) async {
-    return FlutterForegroundTask.startService(
+    final result = await FlutterForegroundTask.startService(
       notificationTitle: 'KM-Erfassung aktiv',
       notificationText: 'Erfassung für $fahrzeugName',
       callback: _startCallback,
     );
+    return result.success;
   }
 
   static Future<bool> stoppen() async {
-    return FlutterForegroundTask.stopService();
+    final result = await FlutterForegroundTask.stopService();
+    return result.success;
   }
 
   static Future<bool> laeuft() async {
@@ -152,7 +154,7 @@ class KmTrackingTaskHandler extends TaskHandler {
   }
 
   @override
-  Future<void> onDestroy(DateTime timestamp) async {
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
     await _tripDetection?.erzwungenStoppen();
   }
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
@@ -182,8 +183,6 @@ class ExportService {
 
   /// Teilt eine Datei über das System-Share-Sheet.
   static Future<void> teilen(File datei) async {
-    await SharePlus.instance.share(
-      ShareParams(files: [XFile(datei.path)]),
-    );
+    await Share.shareXFiles([XFile(datei.path)]);
   }
 }

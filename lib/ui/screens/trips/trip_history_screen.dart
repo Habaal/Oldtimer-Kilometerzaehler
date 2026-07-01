@@ -42,7 +42,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
 
           // Standard: aktives Fahrzeug
           final vehicleId = _selectedVehicleId ??
-              activeVehicle.valueOrNull?.id ??
+              activeVehicle.value?.id ??
               vehicleList.first.id;
 
           final filter = TripsFilter(
@@ -171,7 +171,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           final vehicleId = _selectedVehicleId ??
-              ref.read(activeVehicleProvider).valueOrNull?.id;
+              ref.read(activeVehicleProvider).value?.id;
           if (vehicleId != null) {
             Navigator.of(context).push(
               MaterialPageRoute(
