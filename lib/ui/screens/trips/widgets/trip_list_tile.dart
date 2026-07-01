@@ -32,14 +32,24 @@ class TripListTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: trip.manuellErfasst
-                      ? Colors.blue.shade50
-                      : Colors.green.shade50,
+                  color: trip.istFirmenfahrt
+                      ? Colors.orange.shade50
+                      : trip.manuellErfasst
+                          ? Colors.blue.shade50
+                          : Colors.green.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  trip.manuellErfasst ? Icons.edit : Icons.gps_fixed,
-                  color: trip.manuellErfasst ? Colors.blue : Colors.green,
+                  trip.istFirmenfahrt
+                      ? Icons.business
+                      : trip.manuellErfasst
+                          ? Icons.edit
+                          : Icons.gps_fixed,
+                  color: trip.istFirmenfahrt
+                      ? Colors.orange
+                      : trip.manuellErfasst
+                          ? Colors.blue
+                          : Colors.green,
                 ),
               ),
               const SizedBox(width: 12),

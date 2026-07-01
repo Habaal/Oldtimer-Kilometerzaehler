@@ -25,6 +25,8 @@ class VehiclesNotifier extends AsyncNotifier<List<Vehicle>> {
     required int baujahr,
     double? jahresLimitKm,
     String? fotoPath,
+    bool istFirmenwagen = false,
+    double? kilometerstand,
   }) async {
     final repo = ref.read(vehicleRepositoryProvider);
     final jetzt = DateTime.now();
@@ -35,11 +37,25 @@ class VehiclesNotifier extends AsyncNotifier<List<Vehicle>> {
       baujahr: baujahr,
       jahresLimitKm: jahresLimitKm,
       fotoPath: fotoPath,
+      istFirmenwagen: istFirmenwagen,
+      kilometerstand: kilometerstand,
       erstelltAm: jetzt,
       aktualisiertAm: jetzt,
     );
     await repo.einfuegen(vehicle);
     ref.invalidateSelf();
+  }
+
+  Future<void> kilometerstandAktualisieren(String id, double km) async {
+    final repo = ref.read(vehicleRepositoryProvider);
+    final vehicle = await repo.abrufen(id);
+    if (vehicle != null) {
+      await repo.aktualisieren(
+        vehicle.copyWith(kilometerstand: km, aktualisiertAm: DateTime.now()),
+      );
+      ref.invalidateSelf();
+      ref.invalidate(activeVehicleProvider);
+    }
   }
 
   Future<void> aktualisieren(Vehicle vehicle) async {

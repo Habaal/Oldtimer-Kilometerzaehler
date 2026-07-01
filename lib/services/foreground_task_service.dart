@@ -74,6 +74,8 @@ void _startCallback() {
 class KmTrackingTaskHandler extends TaskHandler {
   TripDetectionService? _tripDetection;
   String? _vehicleId;
+  bool _istFirmenfahrt = false;
+  double? _kilometerstandStart;
   DateTime? _letzteGpsAbfrage;
 
   @override
@@ -145,6 +147,12 @@ class KmTrackingTaskHandler extends TaskHandler {
     if (data is Map<String, dynamic>) {
       if (data.containsKey('vehicleId')) {
         _vehicleId = data['vehicleId'] as String?;
+        _istFirmenfahrt = data['istFirmenfahrt'] as bool? ?? false;
+        _kilometerstandStart = (data['kilometerstandStart'] as num?)?.toDouble();
+        _tripDetection?.fahrtTypSetzen(
+          istFirmenfahrt: _istFirmenfahrt,
+          kilometerstandStart: _kilometerstandStart,
+        );
       }
       if (data['action'] == 'manuellStarten' && _vehicleId != null) {
         _manuellStarten();

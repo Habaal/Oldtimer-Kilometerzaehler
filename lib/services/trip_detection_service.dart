@@ -169,6 +169,14 @@ class TripDetectionService {
     onZustandGeaendert?.call(neuerZustand);
   }
 
+  bool _istFirmenfahrt = false;
+  double? _kilometerstandStart;
+
+  void fahrtTypSetzen({bool istFirmenfahrt = false, double? kilometerstandStart}) {
+    _istFirmenfahrt = istFirmenfahrt;
+    _kilometerstandStart = kilometerstandStart;
+  }
+
   Future<void> _tripStarten(Position position, {String? vehicleId}) async {
     final id = const Uuid().v4();
     _aktuellerTripId = id;
@@ -188,6 +196,8 @@ class TripDetectionService {
       vehicleId: vehicleId ?? '',
       startTimestamp: DateTime.now(),
       startOrt: startOrt,
+      istFirmenfahrt: _istFirmenfahrt,
+      kilometerstandStart: _kilometerstandStart,
     );
     await _tripRepo.einfuegen(trip);
     onTripGestartet?.call(id);
@@ -217,10 +227,14 @@ class TripDetectionService {
 
       final trip = await _tripRepo.abrufen(tripId);
       if (trip != null) {
+        final kmEnde = _kilometerstandStart != null
+            ? _kilometerstandStart! + _akkumulierteDistanzKm
+            : null;
         await _tripRepo.aktualisieren(trip.copyWith(
           endTimestamp: DateTime.now(),
           distanceKm: _akkumulierteDistanzKm,
           endOrt: endOrt,
+          kilometerstandEnde: kmEnde,
         ));
       }
 

@@ -7,6 +7,8 @@ class Vehicle {
   final bool aktiv;
   final String? fotoPath;
   final bool trackingPausiert;
+  final bool istFirmenwagen;
+  final double? kilometerstand;
   final DateTime erstelltAm;
   final DateTime aktualisiertAm;
 
@@ -19,6 +21,8 @@ class Vehicle {
     this.aktiv = false,
     this.fotoPath,
     this.trackingPausiert = false,
+    this.istFirmenwagen = false,
+    this.kilometerstand,
     required this.erstelltAm,
     required this.aktualisiertAm,
   });
@@ -33,6 +37,9 @@ class Vehicle {
     String? fotoPath,
     bool? clearFoto,
     bool? trackingPausiert,
+    bool? istFirmenwagen,
+    double? kilometerstand,
+    bool? clearKilometerstand,
     DateTime? aktualisiertAm,
   }) {
     return Vehicle(
@@ -46,6 +53,10 @@ class Vehicle {
       aktiv: aktiv ?? this.aktiv,
       fotoPath: clearFoto == true ? null : (fotoPath ?? this.fotoPath),
       trackingPausiert: trackingPausiert ?? this.trackingPausiert,
+      istFirmenwagen: istFirmenwagen ?? this.istFirmenwagen,
+      kilometerstand: clearKilometerstand == true
+          ? null
+          : (kilometerstand ?? this.kilometerstand),
       erstelltAm: erstelltAm,
       aktualisiertAm: aktualisiertAm ?? this.aktualisiertAm,
     );
@@ -61,6 +72,8 @@ class Vehicle {
       'aktiv': aktiv ? 1 : 0,
       'foto_path': fotoPath,
       'tracking_pausiert': trackingPausiert ? 1 : 0,
+      'ist_firmenwagen': istFirmenwagen ? 1 : 0,
+      'kilometerstand': kilometerstand,
       'erstellt_am': erstelltAm.toIso8601String(),
       'aktualisiert_am': aktualisiertAm.toIso8601String(),
     };
@@ -76,6 +89,8 @@ class Vehicle {
       aktiv: (map['aktiv'] as int) == 1,
       fotoPath: map['foto_path'] as String?,
       trackingPausiert: (map['tracking_pausiert'] as int) == 1,
+      istFirmenwagen: (map['ist_firmenwagen'] as int?) == 1,
+      kilometerstand: (map['kilometerstand'] as num?)?.toDouble(),
       erstelltAm: DateTime.parse(map['erstellt_am'] as String),
       aktualisiertAm: DateTime.parse(map['aktualisiert_am'] as String),
     );

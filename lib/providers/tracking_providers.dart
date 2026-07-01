@@ -72,7 +72,12 @@ class TrackingController {
 
   TrackingController(this._ref);
 
-  Future<bool> starten(String vehicleId, String fahrzeugName) async {
+  Future<bool> starten(
+    String vehicleId,
+    String fahrzeugName, {
+    bool istFirmenfahrt = false,
+    double? kilometerstandStart,
+  }) async {
     final locationService = LocationService();
     final erlaubt = await locationService.berechtigungPruefen();
     if (!erlaubt) return false;
@@ -81,7 +86,11 @@ class TrackingController {
     final gestartet = await ForegroundTaskService.starten(fahrzeugName);
     if (gestartet) {
       _ref.read(serviceAktivProvider.notifier).state = true;
-      ForegroundTaskService.datenAnTaskSenden({'vehicleId': vehicleId});
+      ForegroundTaskService.datenAnTaskSenden({
+        'vehicleId': vehicleId,
+        'istFirmenfahrt': istFirmenfahrt,
+        'kilometerstandStart': kilometerstandStart,
+      });
     }
     return gestartet;
   }

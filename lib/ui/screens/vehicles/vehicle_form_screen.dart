@@ -27,8 +27,10 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   final _kennzeichenController = TextEditingController();
   final _baujahrController = TextEditingController();
   final _limitController = TextEditingController();
+  final _kilometerstandController = TextEditingController();
 
   String? _fotoPath;
+  bool _istFirmenwagen = false;
   bool _laden = false;
   bool _initialisiert = false;
 
@@ -40,6 +42,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     _kennzeichenController.dispose();
     _baujahrController.dispose();
     _limitController.dispose();
+    _kilometerstandController.dispose();
     super.dispose();
   }
 
@@ -52,7 +55,11 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     if (vehicle.jahresLimitKm != null) {
       _limitController.text = vehicle.jahresLimitKm!.toStringAsFixed(0);
     }
+    if (vehicle.kilometerstand != null) {
+      _kilometerstandController.text = vehicle.kilometerstand!.toStringAsFixed(0);
+    }
     _fotoPath = vehicle.fotoPath;
+    _istFirmenwagen = vehicle.istFirmenwagen;
   }
 
   @override
@@ -150,7 +157,26 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _kilometerstandController,
+                decoration: const InputDecoration(
+                  labelText: 'Aktueller Kilometerstand',
+                  hintText: 'z.B. 48350',
+                  suffixText: 'km',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('Firmenwagen'),
+                subtitle: const Text('Unterscheidet Privat- und Firmenfahrten'),
+                value: _istFirmenwagen,
+                onChanged: (v) => setState(() => _istFirmenwagen = v),
+                contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -193,6 +219,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       final limit = _limitController.text.trim().isNotEmpty
           ? double.tryParse(_limitController.text.trim())
           : null;
+      final km = _kilometerstandController.text.trim().isNotEmpty
+          ? double.tryParse(_kilometerstandController.text.trim())
+          : null;
 
       if (existing != null) {
         await ref.read(vehiclesProvider.notifier).aktualisieren(
@@ -203,6 +232,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 jahresLimitKm: limit,
                 clearJahresLimit: limit == null,
                 fotoPath: _fotoPath,
+                istFirmenwagen: _istFirmenwagen,
+                kilometerstand: km,
+                clearKilometerstand: km == null,
               ),
             );
       } else {
@@ -212,6 +244,8 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
               baujahr: int.parse(_baujahrController.text.trim()),
               jahresLimitKm: limit,
               fotoPath: _fotoPath,
+              istFirmenwagen: _istFirmenwagen,
+              kilometerstand: km,
             );
       }
 

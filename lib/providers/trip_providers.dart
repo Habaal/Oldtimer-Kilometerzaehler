@@ -53,6 +53,9 @@ class TripCrud {
     required DateTime endTimestamp,
     required double distanceKm,
     String? notiz,
+    bool istFirmenfahrt = false,
+    double? kilometerstandStart,
+    double? kilometerstandEnde,
   }) async {
     final repo = _ref.read(tripRepositoryProvider);
     final trip = Trip(
@@ -62,7 +65,10 @@ class TripCrud {
       endTimestamp: endTimestamp,
       distanceKm: distanceKm,
       manuellErfasst: true,
+      istFirmenfahrt: istFirmenfahrt,
       notiz: notiz,
+      kilometerstandStart: kilometerstandStart,
+      kilometerstandEnde: kilometerstandEnde,
     );
     await repo.einfuegen(trip);
     _ref.invalidate(tripsProvider);

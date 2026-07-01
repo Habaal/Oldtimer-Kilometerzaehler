@@ -25,10 +25,13 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _distanzController = TextEditingController();
   final _notizController = TextEditingController();
+  final _kmStartController = TextEditingController();
+  final _kmEndeController = TextEditingController();
 
   late DateTime _datum;
   late TimeOfDay _startzeit;
   late TimeOfDay _endzeit;
+  bool _istFirmenfahrt = false;
   bool _laden = false;
   bool _initialisiert = false;
 
@@ -46,6 +49,8 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
   void dispose() {
     _distanzController.dispose();
     _notizController.dispose();
+    _kmStartController.dispose();
+    _kmEndeController.dispose();
     super.dispose();
   }
 
@@ -59,6 +64,13 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
         : TimeOfDay.now();
     _distanzController.text = trip.distanceKm.toStringAsFixed(1);
     _notizController.text = trip.notiz ?? '';
+    _istFirmenfahrt = trip.istFirmenfahrt;
+    if (trip.kilometerstandStart != null) {
+      _kmStartController.text = trip.kilometerstandStart!.toStringAsFixed(0);
+    }
+    if (trip.kilometerstandEnde != null) {
+      _kmEndeController.text = trip.kilometerstandEnde!.toStringAsFixed(0);
+    }
   }
 
   @override
@@ -173,7 +185,42 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
                 ),
                 maxLines: 2,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _kmStartController,
+                      decoration: const InputDecoration(
+                        labelText: 'KM-Stand Start',
+                        suffixText: 'km',
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _kmEndeController,
+                      decoration: const InputDecoration(
+                        labelText: 'KM-Stand Ende',
+                        suffixText: 'km',
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('Firmenfahrt'),
+                value: _istFirmenfahrt,
+                onChanged: (v) => setState(() => _istFirmenfahrt = v),
+                contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
 
               FilledButton(
                 onPressed: _laden ? null : () => _speichern(existing),
@@ -211,11 +258,21 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
 
       final crud = ref.read(tripCrudProvider);
 
+      final kmStart = _kmStartController.text.trim().isNotEmpty
+          ? double.tryParse(_kmStartController.text.trim())
+          : null;
+      final kmEnde = _kmEndeController.text.trim().isNotEmpty
+          ? double.tryParse(_kmEndeController.text.trim())
+          : null;
+
       if (existing != null) {
         await crud.aktualisieren(existing.copyWith(
           startTimestamp: start,
           endTimestamp: end,
           distanceKm: km,
+          istFirmenfahrt: _istFirmenfahrt,
+          kilometerstandStart: kmStart,
+          kilometerstandEnde: kmEnde,
           notiz: _notizController.text.trim().isNotEmpty
               ? _notizController.text.trim()
               : null,
@@ -227,6 +284,9 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
           startTimestamp: start,
           endTimestamp: end,
           distanceKm: km,
+          istFirmenfahrt: _istFirmenfahrt,
+          kilometerstandStart: kmStart,
+          kilometerstandEnde: kmEnde,
           notiz: _notizController.text.trim().isNotEmpty
               ? _notizController.text.trim()
               : null,

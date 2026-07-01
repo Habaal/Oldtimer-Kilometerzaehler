@@ -8,12 +8,14 @@ import 'package:geolocator/geolocator.dart';
 import '../../../l10n/app_de.dart';
 import '../../../providers/statistics_providers.dart';
 import '../../../providers/tracking_providers.dart';
+import '../../../data/models/vehicle.dart';
 import '../../../providers/vehicle_providers.dart';
 import '../../../core/utils/haversine.dart';
 import '../../../services/geocoding_service.dart';
 import '../../shared/loading_indicator.dart';
 import 'widgets/active_vehicle_card.dart';
 import 'widgets/km_progress_card.dart';
+import 'kilometerstand_dialog.dart';
 import 'widgets/live_location_card.dart';
 import 'widgets/tracking_status_card.dart';
 
@@ -226,7 +228,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     serviceAktiv: serviceAktiv,
                     zustand: zustand,
                     aktuelleDistanzKm: distanz,
-                    onStartenStoppen: () => _erfassungToggle(vehicle.id, vehicle.name),
+                    onStartenStoppen: () => _erfassungToggle(vehicle),
                     onFahrtManuellStarten: () =>
                         ref.read(trackingControllerProvider).manuellStarten(),
                     onFahrtStoppen: () =>
@@ -261,14 +263,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  void _erfassungToggle(String vehicleId, String fahrzeugName) {
+  Future<void> _erfassungToggle(Vehicle vehicle) async {
     final controller = ref.read(trackingControllerProvider);
     final aktiv = ref.read(serviceAktivProvider);
     if (aktiv) {
       controller.stoppen();
-    } else {
-      controller.starten(vehicleId, fahrzeugName);
+      return;
     }
+
+    if (!mounted) return;
+    final ergebnis = await KilometerstandDialog.zeigen(
+      context,
+      aktuellerStand: vehicle.kilometerstand,
+      fahrzeugName: vehicle.name,
+      istFirmenwagen: vehicle.istFirmenwagen,
+    );
+    if (ergebnis == null) return;
+
+    await ref.read(vehiclesProvider.notifier).kilometerstandAktualisieren(
+      vehicle.id,
+      ergebnis.kilometerstand,
+    );
+
+    controller.starten(
+      vehicle.id,
+      vehicle.name,
+      istFirmenfahrt: ergebnis.istFirmenfahrt,
+      kilometerstandStart: ergebnis.kilometerstand,
+    );
   }
 
   void _fahrzeugWaehlen(BuildContext context) {

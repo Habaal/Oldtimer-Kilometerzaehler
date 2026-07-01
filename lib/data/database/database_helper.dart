@@ -1,11 +1,12 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'migrations.dart';
 import 'tables.dart';
 
 class DatabaseHelper {
   static const _databaseName = 'oldtimer_km_log.db';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   DatabaseHelper._internal();
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -42,9 +43,7 @@ class DatabaseHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Sequentielle Migration:
-    // if (oldVersion < 2) await Migrations.v1ZuV2(db);
-    // if (oldVersion < 3) await Migrations.v2ZuV3(db);
+    if (oldVersion < 2) await Migrations.v1ZuV2(db);
   }
 
   Future<void> close() async {
