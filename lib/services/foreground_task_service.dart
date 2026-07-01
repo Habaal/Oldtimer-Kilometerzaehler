@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,17 +33,25 @@ class ForegroundTaskService {
   }
 
   static Future<bool> starten(String fahrzeugName) async {
-    final result = await FlutterForegroundTask.startService(
-      notificationTitle: 'KM-Erfassung aktiv',
-      notificationText: 'Erfassung für $fahrzeugName',
-      callback: _startCallback,
-    );
-    return result.success;
+    try {
+      await FlutterForegroundTask.startService(
+        notificationTitle: 'KM-Erfassung aktiv',
+        notificationText: 'Erfassung für $fahrzeugName',
+        callback: _startCallback,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<bool> stoppen() async {
-    final result = await FlutterForegroundTask.stopService();
-    return result.success;
+    try {
+      await FlutterForegroundTask.stopService();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<bool> laeuft() async {
