@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../l10n/app_de.dart';
 import '../../../providers/statistics_providers.dart';
@@ -23,6 +24,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void initState() {
     super.initState();
     FlutterForegroundTask.addTaskDataCallback(_onTaskDaten);
+    _standortBerechtigung();
+  }
+
+  Future<void> _standortBerechtigung() async {
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      await Geolocator.requestPermission();
+    }
   }
 
   @override

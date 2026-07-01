@@ -2,6 +2,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/foreground_task_service.dart';
+import '../services/location_service.dart';
 import '../services/trip_detection_service.dart';
 
 final trackingZustandProvider =
@@ -50,13 +51,18 @@ class TrackingController {
 
   TrackingController(this._ref);
 
-  Future<void> starten(String vehicleId, String fahrzeugName) async {
+  Future<bool> starten(String vehicleId, String fahrzeugName) async {
+    final locationService = LocationService();
+    final erlaubt = await locationService.berechtigungPruefen();
+    if (!erlaubt) return false;
+
     ForegroundTaskService.init();
     final gestartet = await ForegroundTaskService.starten(fahrzeugName);
     if (gestartet) {
       _ref.read(serviceAktivProvider.notifier).state = true;
       ForegroundTaskService.datenAnTaskSenden({'vehicleId': vehicleId});
     }
+    return gestartet;
   }
 
   Future<void> stoppen() async {
