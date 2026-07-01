@@ -29,9 +29,67 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> _standortBerechtigung() async {
-    final permission = await Geolocator.checkPermission();
+    var permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.always) return;
+
+    // Schritt 1: Erklärung zeigen, warum "Immer erlauben" nötig ist
     if (permission == LocationPermission.denied) {
-      await Geolocator.requestPermission();
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: const Text(AppDe.berechtigungTitel),
+          content: const Text(AppDe.berechtigungErklaerung),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(AppDe.verstanden),
+            ),
+          ],
+        ),
+      );
+
+      // Schritt 2: Erste Anfrage ("Beim Verwenden erlauben")
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+    }
+
+    // Schritt 3: Upgrade auf "Immer erlauben" versuchen
+    if (permission == LocationPermission.whileInUse) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    // Schritt 4: Falls immer noch nicht "Immer" — Hinweis mit Einstellungs-Link
+    if (permission != LocationPermission.always && mounted) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Hintergrund-Standort benötigt'),
+          content: const Text(
+            'Damit die Kilometererfassung auch bei gesperrtem Bildschirm '
+            'funktioniert, muss der Standortzugriff auf "Immer" gesetzt werden.\n\n'
+            'Gehe zu:\nEinstellungen > Oldtimer KM-Log > Standort > Immer',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Später'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Geolocator.openAppSettings();
+              },
+              child: const Text('Einstellungen öffnen'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
