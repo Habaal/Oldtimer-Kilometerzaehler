@@ -11,6 +11,8 @@ class Tables {
       aktiv INTEGER NOT NULL DEFAULT 0,
       foto_path TEXT,
       tracking_pausiert INTEGER NOT NULL DEFAULT 0,
+      ist_firmenwagen INTEGER NOT NULL DEFAULT 0,
+      kilometerstand REAL,
       erstellt_am TEXT NOT NULL,
       aktualisiert_am TEXT NOT NULL
     )
@@ -24,9 +26,12 @@ class Tables {
       end_timestamp TEXT,
       distance_km REAL NOT NULL DEFAULT 0.0,
       manuell_erfasst INTEGER NOT NULL DEFAULT 0,
+      ist_firmenfahrt INTEGER NOT NULL DEFAULT 0,
       start_ort TEXT,
       end_ort TEXT,
       notiz TEXT,
+      kilometerstand_start REAL,
+      kilometerstand_ende REAL,
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
     )
   ''';

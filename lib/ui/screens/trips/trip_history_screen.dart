@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/extensions.dart';
+import '../../../data/models/trip.dart';
 import '../../../l10n/app_de.dart';
 import '../../../providers/trip_providers.dart';
 import '../../../providers/vehicle_providers.dart';
 import '../../shared/confirmation_dialog.dart';
 import '../../shared/loading_indicator.dart';
 import 'trip_form_screen.dart';
+import 'trip_map_screen.dart';
 import 'widgets/date_range_filter.dart';
 import 'widgets/trip_list_tile.dart';
 
@@ -140,8 +142,9 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                               final trip = liste[index];
                               return TripListTile(
                                 trip: trip,
-                                onTap: () => _bearbeiten(context, trip.id,
-                                    vehicleId),
+                                onTap: () => _karteZeigen(context, trip),
+                                onBearbeiten: () => _bearbeiten(
+                                    context, trip.id, vehicleId),
                                 onLoeschen: () async {
                                   final ok = await bestaetigenDialog(
                                     context,
@@ -182,6 +185,14 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
           }
         },
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _karteZeigen(BuildContext context, Trip trip) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TripMapScreen(trip: trip),
       ),
     );
   }

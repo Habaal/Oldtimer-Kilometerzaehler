@@ -6,12 +6,14 @@ import '../../../../data/models/trip.dart';
 class TripListTile extends StatelessWidget {
   final Trip trip;
   final VoidCallback onTap;
+  final VoidCallback onBearbeiten;
   final VoidCallback onLoeschen;
 
   const TripListTile({
     super.key,
     required this.trip,
     required this.onTap,
+    required this.onBearbeiten,
     required this.onLoeschen,
   });
 
@@ -96,17 +98,38 @@ class TripListTile extends StatelessWidget {
               ),
               PopupMenuButton<String>(
                 onSelected: (value) {
-                  if (value == 'bearbeiten') onTap();
+                  if (value == 'karte') onTap();
+                  if (value == 'bearbeiten') onBearbeiten();
                   if (value == 'loeschen') onLoeschen();
                 },
                 itemBuilder: (_) => [
                   const PopupMenuItem(
+                    value: 'karte',
+                    child: ListTile(
+                      leading: Icon(Icons.map),
+                      title: Text('Karte anzeigen'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const PopupMenuItem(
                     value: 'bearbeiten',
-                    child: Text('Bearbeiten'),
+                    child: ListTile(
+                      leading: Icon(Icons.edit),
+                      title: Text('Bearbeiten'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
                   const PopupMenuItem(
                     value: 'loeschen',
-                    child: Text('Löschen', style: TextStyle(color: Colors.red)),
+                    child: ListTile(
+                      leading: Icon(Icons.delete, color: Colors.red),
+                      title: Text('Löschen',
+                          style: TextStyle(color: Colors.red)),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
                 ],
               ),

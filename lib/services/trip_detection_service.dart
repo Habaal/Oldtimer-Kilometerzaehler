@@ -237,9 +237,6 @@ class TripDetectionService {
           kilometerstandEnde: kmEnde,
         ));
       }
-
-      // GPS-Punkte löschen um Speicher zu sparen
-      await _pointRepo.fuerTripLoeschen(tripId);
     }
 
     onTripBeendet?.call(tripId, _akkumulierteDistanzKm);
