@@ -130,6 +130,12 @@ class KmTrackingTaskHandler extends TaskHandler {
           accuracy: _gpsGenauigkeit(),
         ),
       );
+      FlutterForegroundTask.sendDataToMain({
+        'type': 'position',
+        'lat': position.latitude,
+        'lng': position.longitude,
+        'speed': position.speed,
+      });
       await _tripDetection!.positionVerarbeiten(position);
     } catch (_) {}
   }

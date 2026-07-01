@@ -10,6 +10,7 @@ import '../../../providers/vehicle_providers.dart';
 import '../../shared/loading_indicator.dart';
 import 'widgets/active_vehicle_card.dart';
 import 'widgets/km_progress_card.dart';
+import 'widgets/live_location_card.dart';
 import 'widgets/tracking_status_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -52,6 +53,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final serviceAktiv = ref.watch(serviceAktivProvider);
     final zustand = ref.watch(trackingZustandProvider);
     final distanz = ref.watch(aktuelleDistanzProvider);
+    final position = ref.watch(aktuellePositionProvider);
+    final ortsname = ref.watch(aktuellerOrtProvider);
     final vehicles = ref.watch(vehiclesProvider);
 
     return Scaffold(
@@ -98,6 +101,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     onFahrtStoppen: () =>
                         ref.read(trackingControllerProvider).manuellStoppen(),
                   ),
+                  if (serviceAktiv && position != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: LiveLocationCard(
+                        lat: position.lat,
+                        lng: position.lng,
+                        speedKmh: position.speed * 3.6,
+                        ortsname: ortsname,
+                      ),
+                    ),
                   const SizedBox(height: 12),
                   if (jahresKm != null)
                     jahresKm.when(
