@@ -8,7 +8,7 @@ class TrackingConstants {
   // Zeitkonstanten
   static const Duration confirmDuration = Duration(seconds: 5);
   static const Duration stopTimeout = Duration(minutes: 3);
-  static const Duration idleGpsInterval = Duration(seconds: 30);
+  static const Duration idleGpsInterval = Duration(seconds: 10);
   static const Duration activeGpsInterval = Duration(seconds: 5);
   static const Duration detectingGpsInterval = Duration(seconds: 3);
   static const Duration stoppingGpsInterval = Duration(seconds: 10);

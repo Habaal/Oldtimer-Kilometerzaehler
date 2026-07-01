@@ -9,6 +9,7 @@ import '../../../l10n/app_de.dart';
 import '../../../providers/statistics_providers.dart';
 import '../../../providers/tracking_providers.dart';
 import '../../../providers/vehicle_providers.dart';
+import '../../../core/utils/haversine.dart';
 import '../../../services/geocoding_service.dart';
 import '../../shared/loading_indicator.dart';
 import 'widgets/active_vehicle_card.dart';
@@ -27,6 +28,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   StreamSubscription<Position>? _positionSub;
   DateTime? _letzteOrtAbfrage;
   bool _streamLaeuft = false;
+  Position? _vorherigeStreamPos;
+  DateTime? _vorherigeStreamZeit;
 
   @override
   void initState() {
@@ -125,10 +128,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _onPosition(Position pos) {
+    double speedMs = pos.speed;
+    if (speedMs < 0 && _vorherigeStreamPos != null && _vorherigeStreamZeit != null) {
+      final distanzKm = haversineKm(
+        _vorherigeStreamPos!.latitude,
+        _vorherigeStreamPos!.longitude,
+        pos.latitude,
+        pos.longitude,
+      );
+      final zeitSek =
+          DateTime.now().difference(_vorherigeStreamZeit!).inMilliseconds / 1000.0;
+      if (zeitSek > 0) {
+        speedMs = (distanzKm * 1000) / zeitSek;
+      } else {
+        speedMs = 0;
+      }
+    } else if (speedMs < 0) {
+      speedMs = 0;
+    }
+    _vorherigeStreamPos = pos;
+    _vorherigeStreamZeit = DateTime.now();
+
     ref.read(aktuellePositionProvider.notifier).state = (
       lat: pos.latitude,
       lng: pos.longitude,
-      speed: pos.speed,
+      speed: speedMs,
     );
     _ortAktualisieren(pos.latitude, pos.longitude);
   }

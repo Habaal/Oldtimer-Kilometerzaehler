@@ -34,6 +34,8 @@ class TripDetectionService {
   DateTime? _detectingStart;
   DateTime? _stoppingStart;
   Position? _ersterPunkt;
+  Position? _vorherigePosition;
+  DateTime? _vorherigeZeit;
 
   final void Function(TrackingZustand zustand)? onZustandGeaendert;
   final void Function(String tripId, double distanzKm)? onDistanzAktualisiert;
@@ -56,10 +58,36 @@ class TripDetectionService {
   String? get aktuellerTripId => _aktuellerTripId;
   double get aktuelleDistanzKm => _akkumulierteDistanzKm;
 
+  /// Berechnet die Geschwindigkeit in km/h.
+  /// Nutzt die GPS-Geschwindigkeit wenn verfügbar (>= 0),
+  /// sonst berechnet aus Distanz zwischen aufeinanderfolgenden Positionen.
+  double _geschwindigkeitBerechnen(Position position) {
+    final gpsSpeed = position.speed;
+    if (gpsSpeed >= 0) return gpsSpeed * 3.6;
+
+    if (_vorherigePosition != null && _vorherigeZeit != null) {
+      final distanzKm = haversineKm(
+        _vorherigePosition!.latitude,
+        _vorherigePosition!.longitude,
+        position.latitude,
+        position.longitude,
+      );
+      final zeitSekunden =
+          DateTime.now().difference(_vorherigeZeit!).inMilliseconds / 1000.0;
+      if (zeitSekunden > 0) {
+        return (distanzKm / zeitSekunden) * 3600;
+      }
+    }
+    return 0.0;
+  }
+
   /// Verarbeitet einen neuen GPS-Punkt und aktualisiert den Zustandsautomaten.
   Future<void> positionVerarbeiten(Position position) async {
-    final geschwindigkeitKmh = (position.speed ?? 0.0) * 3.6;
+    final geschwindigkeitKmh = _geschwindigkeitBerechnen(position);
     final jetzt = DateTime.now();
+
+    _vorherigePosition = position;
+    _vorherigeZeit = jetzt;
 
     switch (_zustand) {
       case TrackingZustand.idle:
