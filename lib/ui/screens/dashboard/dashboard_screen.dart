@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import '../../../l10n/app_de.dart';
 import '../../../providers/statistics_providers.dart';
 import '../../../providers/tracking_providers.dart';
 import '../../../providers/vehicle_providers.dart';
+import '../../../services/geocoding_service.dart';
 import '../../shared/loading_indicator.dart';
 import 'widgets/active_vehicle_card.dart';
 import 'widgets/km_progress_card.dart';
@@ -21,6 +24,10 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  StreamSubscription<Position>? _positionSub;
+  DateTime? _letzteOrtAbfrage;
+  bool _streamLaeuft = false;
+
   @override
   void initState() {
     super.initState();
@@ -95,8 +102,48 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   void dispose() {
+    _positionSub?.cancel();
     FlutterForegroundTask.removeTaskDataCallback(_onTaskDaten);
     super.dispose();
+  }
+
+  void _positionStreamVerwalten(bool serviceAktiv) {
+    if (serviceAktiv && !_streamLaeuft) {
+      _streamLaeuft = true;
+      _positionSub?.cancel();
+      _positionSub = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      ).listen(_onPosition, onError: (_) {});
+    } else if (!serviceAktiv && _streamLaeuft) {
+      _streamLaeuft = false;
+      _positionSub?.cancel();
+      _positionSub = null;
+    }
+  }
+
+  void _onPosition(Position pos) {
+    ref.read(aktuellePositionProvider.notifier).state = (
+      lat: pos.latitude,
+      lng: pos.longitude,
+      speed: pos.speed,
+    );
+    _ortAktualisieren(pos.latitude, pos.longitude);
+  }
+
+  void _ortAktualisieren(double lat, double lng) async {
+    final jetzt = DateTime.now();
+    if (_letzteOrtAbfrage != null &&
+        jetzt.difference(_letzteOrtAbfrage!) < const Duration(seconds: 15)) {
+      return;
+    }
+    _letzteOrtAbfrage = jetzt;
+    final ort = await GeocodingService().ortsnameVonKoordinaten(lat, lng);
+    if (mounted) {
+      ref.read(aktuellerOrtProvider.notifier).state = ort;
+    }
   }
 
   void _onTaskDaten(Object data) {
@@ -114,6 +161,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final position = ref.watch(aktuellePositionProvider);
     final ortsname = ref.watch(aktuellerOrtProvider);
     final vehicles = ref.watch(vehiclesProvider);
+
+    _positionStreamVerwalten(serviceAktiv);
 
     return Scaffold(
       appBar: AppBar(
