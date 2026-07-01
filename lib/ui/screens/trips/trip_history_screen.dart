@@ -169,6 +169,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_fahrt_hinzufuegen',
         onPressed: () {
           final vehicleId = _selectedVehicleId ??
               ref.read(activeVehicleProvider).value?.id;

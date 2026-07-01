@@ -76,6 +76,7 @@ class VehiclesListScreen extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_fahrzeug_hinzufuegen',
         onPressed: () => _hinzufuegen(context),
         child: const Icon(Icons.add),
       ),
