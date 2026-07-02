@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -73,6 +75,8 @@ class TrackingController {
   final Ref _ref;
   TripDetectionService? _tripDetection;
   String? _vehicleId;
+  Timer? _tickTimer;
+  DateTime? _letzteVerarbeitung;
 
   TrackingController(this._ref);
 
@@ -82,6 +86,9 @@ class TrackingController {
     bool istFirmenfahrt = false,
     double? kilometerstandStart,
   }) async {
+    // Doppelstart verhindern
+    if (_ref.read(serviceAktivProvider)) return true;
+
     final locationService = LocationService();
     final erlaubt = await locationService.berechtigungPruefen();
     if (!erlaubt) return false;
@@ -125,14 +132,27 @@ class TrackingController {
     final gestartet = await ForegroundTaskService.starten(fahrzeugName);
     if (gestartet) {
       _ref.read(serviceAktivProvider.notifier).state = true;
+      // Zeitbasierter Tick, damit das Fahrtende auch ohne
+      // neue GPS-Events erkannt wird (z.B. Auto abgestellt)
+      _tickTimer?.cancel();
+      _tickTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+        _tripDetection?.zeitTick();
+      });
+    } else {
+      // Fehlstart: nicht mit halb initialisiertem Zustand weitermachen
+      _tripDetection = null;
+      _vehicleId = null;
     }
     return gestartet;
   }
 
   Future<void> stoppen() async {
+    _tickTimer?.cancel();
+    _tickTimer = null;
     await _tripDetection?.erzwungenStoppen();
     _tripDetection = null;
     _vehicleId = null;
+    _letzteVerarbeitung = null;
     await ForegroundTaskService.stoppen();
     _ref.read(serviceAktivProvider.notifier).state = false;
     _ref.read(trackingZustandProvider.notifier).state = TrackingZustand.idle;
@@ -142,7 +162,16 @@ class TrackingController {
     _ref.read(aktuellerOrtProvider.notifier).state = null;
   }
 
+  /// Auf max. eine Verarbeitung alle 3 Sekunden drosseln — der
+  /// GPS-Stream liefert bis zu 1 Update/Sekunde und würde sonst
+  /// die Datenbank mit Punkten fluten.
   void positionVerarbeiten(Position position) {
+    final jetzt = DateTime.now();
+    if (_letzteVerarbeitung != null &&
+        jetzt.difference(_letzteVerarbeitung!) < const Duration(seconds: 3)) {
+      return;
+    }
+    _letzteVerarbeitung = jetzt;
     _tripDetection?.positionVerarbeiten(position);
   }
 

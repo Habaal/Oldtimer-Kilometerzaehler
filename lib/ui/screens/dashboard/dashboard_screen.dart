@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,15 +104,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     super.dispose();
   }
 
+  /// Plattformspezifische Einstellungen:
+  /// - iOS: Hintergrund-Updates erlauben, sonst stoppt GPS bei gesperrtem
+  ///   Bildschirm. distanceFilter 0, damit auch im Stillstand Updates
+  ///   kommen (nötig für die automatische Fahrtende-Erkennung).
+  LocationSettings _locationSettings() {
+    if (Platform.isIOS || Platform.isMacOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.high,
+        activityType: ActivityType.automotiveNavigation,
+        distanceFilter: 0,
+        pauseLocationUpdatesAutomatically: false,
+        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: true,
+      );
+    }
+    if (Platform.isAndroid) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+        intervalDuration: const Duration(seconds: 3),
+      );
+    }
+    return const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+    );
+  }
+
   void _positionStreamVerwalten(bool serviceAktiv) {
     if (serviceAktiv && !_streamLaeuft) {
       _streamLaeuft = true;
       _positionSub?.cancel();
       _positionSub = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 10,
-        ),
+        locationSettings: _locationSettings(),
       ).listen(_onPosition, onError: (_) {});
     } else if (!serviceAktiv && _streamLaeuft) {
       _streamLaeuft = false;
@@ -261,12 +287,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ergebnis.kilometerstand,
     );
 
-    controller.starten(
+    final gestartet = await controller.starten(
       vehicle.id,
       vehicle.name,
       istFirmenfahrt: ergebnis.istFirmenfahrt,
       kilometerstandStart: ergebnis.kilometerstand,
     );
+    if (!gestartet && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Erfassung konnte nicht gestartet werden. '
+            'Bitte Standort-Berechtigung prüfen.',
+          ),
+        ),
+      );
+    }
   }
 
   void _fahrzeugWaehlen(BuildContext context) {

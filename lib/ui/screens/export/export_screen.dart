@@ -119,7 +119,11 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                           firstDate: DateTime(2000),
                           lastDate: DateTime.now(),
                         );
-                        if (d != null) setState(() => _bis = d);
+                        if (d != null) {
+                          // Ende des Tages, damit Fahrten am Enddatum mitzählen
+                          setState(() => _bis =
+                              DateTime(d.year, d.month, d.day, 23, 59, 59));
+                        }
                       },
                       icon: const Icon(Icons.calendar_today),
                       label: Text(_bis.datumFormatiert),
@@ -149,7 +153,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                       final j = DateTime.now().year - 1;
                       setState(() {
                         _von = DateTime(j, 1, 1);
-                        _bis = DateTime(j, 12, 31);
+                        _bis = DateTime(j, 12, 31, 23, 59, 59);
                       });
                     },
                   ),

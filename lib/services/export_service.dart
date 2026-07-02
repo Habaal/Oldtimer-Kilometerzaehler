@@ -18,6 +18,10 @@ class ExportService {
   static final _zeitFormat = DateFormat('HH:mm');
   static final _kmFormat = NumberFormat('#,##0.0', 'de_DE');
 
+  /// Entfernt Zeichen, die in Dateinamen Probleme machen (z.B. "/").
+  static String _dateinameSicher(String s) =>
+      s.replaceAll(RegExp(r'[^\w\-.]'), '_');
+
   /// Erstellt eine CSV-Datei mit Fahrtdaten.
   /// Semikolon als Trennzeichen (deutscher Excel-Standard).
   static Future<File> csvErstellen(
@@ -61,7 +65,7 @@ class ExportService {
     ).convert(rows);
 
     final dir = await getApplicationDocumentsDirectory();
-    final fileName = 'Fahrtenbuch_${vehicle.kennzeichen}_'
+    final fileName = 'Fahrtenbuch_${_dateinameSicher(vehicle.kennzeichen)}_'
         '${_datumsFormat.format(von)}-${_datumsFormat.format(bis)}.csv';
     final file = File('${dir.path}/$fileName');
     await file.writeAsString('﻿$csvString', encoding: utf8);
@@ -173,7 +177,7 @@ class ExportService {
     );
 
     final dir = await getApplicationDocumentsDirectory();
-    final fileName = 'Fahrtenbuch_${vehicle.kennzeichen}_'
+    final fileName = 'Fahrtenbuch_${_dateinameSicher(vehicle.kennzeichen)}_'
         '${_datumsFormat.format(von)}-${_datumsFormat.format(bis)}.pdf';
     final file = File('${dir.path}/$fileName');
     await file.writeAsBytes(await pdf.save());

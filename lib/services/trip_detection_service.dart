@@ -127,6 +127,38 @@ class TripDetectionService {
     }
   }
 
+  /// Prüft zeitbasierte Übergänge auch ohne neue GPS-Position.
+  /// Nötig, weil im Stillstand unter Umständen keine Stream-Events
+  /// mehr kommen und der Stopp-Timeout sonst nie ausgelöst wird.
+  Future<void> zeitTick() async {
+    final jetzt = DateTime.now();
+    switch (_zustand) {
+      case TrackingZustand.stopping:
+        if (_stoppingStart != null &&
+            jetzt.difference(_stoppingStart!) >=
+                TrackingConstants.stopTimeout) {
+          await _tripBeenden();
+          _zustandSetzen(TrackingZustand.idle);
+        }
+      case TrackingZustand.tripActive:
+        // Gar keine GPS-Updates mehr → als Stillstand werten
+        if (_vorherigeZeit != null &&
+            jetzt.difference(_vorherigeZeit!) >=
+                TrackingConstants.stopTimeout) {
+          await _tripBeenden();
+          _zustandSetzen(TrackingZustand.idle);
+        }
+      case TrackingZustand.detecting:
+        // Erkennung hängt ohne neue Positionen → zurück zu Idle
+        if (_vorherigeZeit != null &&
+            jetzt.difference(_vorherigeZeit!) >= const Duration(minutes: 1)) {
+          _zustandSetzen(TrackingZustand.idle);
+        }
+      case TrackingZustand.idle:
+        break;
+    }
+  }
+
   /// Startet einen Trip manuell (Override).
   Future<void> manuellStarten(String vehicleId, Position position) async {
     if (_zustand == TrackingZustand.tripActive) return;

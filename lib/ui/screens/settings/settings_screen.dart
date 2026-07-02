@@ -92,8 +92,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.cleaning_services),
             title: const Text(AppDe.gpsPunkteLoeschen),
             subtitle: const Text(
-                'Entfernt gespeicherte GPS-Punkte abgeschlossener Fahrten.'),
+                'Spart Speicherplatz. Achtung: Die Strecken können danach '
+                'nicht mehr auf der Karte angezeigt werden.'),
             onTap: () async {
+              final bestaetigt = await bestaetigenDialog(
+                context,
+                titel: AppDe.gpsPunkteLoeschen,
+                nachricht:
+                    'Alle GPS-Punkte abgeschlossener Fahrten löschen? '
+                    'Die Karten-Ansicht dieser Fahrten geht dabei '
+                    'unwiderruflich verloren. Die Kilometer bleiben '
+                    'erhalten.',
+              );
+              if (!bestaetigt) return;
               final repo = LocationPointRepository();
               final anzahl = await repo.abgeschlosseneLoeschen();
               if (mounted) {

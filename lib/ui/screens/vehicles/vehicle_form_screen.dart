@@ -250,6 +250,12 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       }
 
       if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Speichern: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _laden = false);
     }

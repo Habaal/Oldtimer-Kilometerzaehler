@@ -61,9 +61,26 @@ class DateRangeFilter extends StatelessWidget {
     );
     if (datum == null) return;
 
-    final neuesVon = istVon ? datum : (von ?? DateTime(2000));
-    final neuesBis = istVon ? (bis ?? DateTime.now()) : datum;
+    // Von = Tagesbeginn, Bis = Tagesende, damit der ganze Tag mitzählt
+    var neuesVon = istVon
+        ? DateTime(datum.year, datum.month, datum.day)
+        : (von ?? DateTime(2000));
+    var neuesBis = istVon
+        ? (bis ?? _tagesEnde(DateTime.now()))
+        : _tagesEnde(datum);
+
+    // Ungültige Reihenfolge korrigieren (sonst wirft DateTimeRange)
+    if (neuesVon.isAfter(neuesBis)) {
+      if (istVon) {
+        neuesBis = _tagesEnde(neuesVon);
+      } else {
+        neuesVon = DateTime(neuesBis.year, neuesBis.month, neuesBis.day);
+      }
+    }
 
     onChanged(DateTimeRange(start: neuesVon, end: neuesBis));
   }
+
+  DateTime _tagesEnde(DateTime d) =>
+      DateTime(d.year, d.month, d.day, 23, 59, 59);
 }

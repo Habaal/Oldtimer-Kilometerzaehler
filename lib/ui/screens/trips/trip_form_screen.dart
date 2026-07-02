@@ -248,10 +248,14 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
         _datum.year, _datum.month, _datum.day,
         _startzeit.hour, _startzeit.minute,
       );
-      final end = DateTime(
+      var end = DateTime(
         _datum.year, _datum.month, _datum.day,
         _endzeit.hour, _endzeit.minute,
       );
+      // Endzeit vor Startzeit → Fahrt ging über Mitternacht
+      if (end.isBefore(start)) {
+        end = end.add(const Duration(days: 1));
+      }
       final km = double.parse(
         _distanzController.text.trim().replaceAll(',', '.'),
       );
@@ -294,6 +298,12 @@ class _TripFormScreenState extends ConsumerState<TripFormScreen> {
       }
 
       if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Speichern: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _laden = false);
     }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/extensions.dart';
@@ -8,13 +7,29 @@ import '../../../data/models/location_point.dart';
 import '../../../data/models/trip.dart';
 import '../../../data/repositories/location_point_repository.dart';
 
-class TripMapScreen extends ConsumerWidget {
+class TripMapScreen extends StatefulWidget {
   final Trip trip;
 
   const TripMapScreen({super.key, required this.trip});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<TripMapScreen> createState() => _TripMapScreenState();
+}
+
+class _TripMapScreenState extends State<TripMapScreen> {
+  // Future cachen, damit nicht bei jedem Rebuild neu abgefragt wird
+  late final Future<List<LocationPoint>> _punkteFuture;
+
+  Trip get trip => widget.trip;
+
+  @override
+  void initState() {
+    super.initState();
+    _punkteFuture = LocationPointRepository().fuerTrip(trip.id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -22,7 +37,7 @@ class TripMapScreen extends ConsumerWidget {
         title: Text('Fahrt ${trip.startTimestamp.datumFormatiert}'),
       ),
       body: FutureBuilder<List<LocationPoint>>(
-        future: LocationPointRepository().fuerTrip(trip.id),
+        future: _punkteFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -63,6 +78,10 @@ class TripMapScreen extends ConsumerWidget {
               .toList();
 
           final bounds = LatLngBounds.fromPoints(routePunkte);
+          // Bei (fast) identischen Punkten hat die Bounding-Box keine
+          // Fläche — CameraFit.bounds würde dann ungültig zoomen.
+          final hatFlaeche = (bounds.north - bounds.south).abs() > 0.0001 ||
+              (bounds.east - bounds.west).abs() > 0.0001;
 
           return Column(
             children: [
@@ -70,10 +89,14 @@ class TripMapScreen extends ConsumerWidget {
               Expanded(
                 child: FlutterMap(
                   options: MapOptions(
-                    initialCameraFit: CameraFit.bounds(
-                      bounds: bounds,
-                      padding: const EdgeInsets.all(40),
-                    ),
+                    initialCenter: routePunkte.first,
+                    initialZoom: 15,
+                    initialCameraFit: hatFlaeche
+                        ? CameraFit.bounds(
+                            bounds: bounds,
+                            padding: const EdgeInsets.all(40),
+                          )
+                        : null,
                   ),
                   children: [
                     TileLayer(
