@@ -44,6 +44,9 @@ dependencies:
   # Hilfsmittel
   uuid: ^4.5.1
 
+  # iOS 26 Liquid Glass
+  native_glass_navbar: ^1.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
