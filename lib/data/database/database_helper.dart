@@ -6,7 +6,7 @@ import 'tables.dart';
 
 class DatabaseHelper {
   static const _databaseName = 'oldtimer_km_log.db';
-  static const _databaseVersion = 3;
+  static const _databaseVersion = 4;
 
   DatabaseHelper._internal();
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -37,14 +37,17 @@ class DatabaseHelper {
     await db.execute(Tables.createVehicles);
     await db.execute(Tables.createTrips);
     await db.execute(Tables.createLocationPoints);
+    await db.execute(Tables.createWartungen);
     await db.execute(Tables.indexTripsVehicleId);
     await db.execute(Tables.indexTripsStartTimestamp);
     await db.execute(Tables.indexLocationPointsTripId);
+    await db.execute(Tables.indexWartungenVehicleId);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) await Migrations.v1ZuV2(db);
     if (oldVersion < 3) await Migrations.v2ZuV3(db);
+    if (oldVersion < 4) await Migrations.v3ZuV4(db);
   }
 
   Future<void> close() async {

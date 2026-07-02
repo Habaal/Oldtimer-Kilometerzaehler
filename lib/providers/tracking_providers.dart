@@ -5,6 +5,8 @@ import '../services/foreground_task_service.dart';
 import '../services/geocoding_service.dart';
 import '../services/location_service.dart';
 import '../services/trip_detection_service.dart';
+import 'statistics_providers.dart';
+import 'trip_providers.dart';
 
 final trackingZustandProvider =
     NotifierProvider<_TrackingZustandNotifier, TrackingZustand>(
@@ -104,6 +106,12 @@ class TrackingController {
       onTripBeendet: (tripId, gesamtKm) {
         _ref.read(aktuellerTripIdProvider.notifier).state = null;
         _ref.read(aktuelleDistanzProvider.notifier).state = 0.0;
+        // Statistiken neu laden, damit Dashboard & Co. die Fahrt mitzählen
+        _ref.invalidate(jahresKmProvider);
+        _ref.invalidate(monatsKmProvider);
+        _ref.invalidate(gesamtKmProvider);
+        _ref.invalidate(privateJahresKmProvider);
+        _ref.invalidate(tripsProvider);
       },
     );
 

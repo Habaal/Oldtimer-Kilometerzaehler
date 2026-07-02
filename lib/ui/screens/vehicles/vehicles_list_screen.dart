@@ -5,7 +5,9 @@ import '../../../l10n/app_de.dart';
 import '../../../providers/vehicle_providers.dart';
 import '../../shared/confirmation_dialog.dart';
 import '../../shared/loading_indicator.dart';
+import '../../../data/models/vehicle.dart';
 import 'vehicle_form_screen.dart';
+import 'wartung_screen.dart';
 import 'widgets/vehicle_list_tile.dart';
 
 class VehiclesListScreen extends ConsumerWidget {
@@ -57,6 +59,7 @@ class VehiclesListScreen extends ConsumerWidget {
               return VehicleListTile(
                 vehicle: vehicle,
                 onTap: () => _bearbeiten(context, vehicle.id),
+                onWartung: () => _wartung(context, vehicle),
                 onAktivieren: () {
                   ref.read(vehiclesProvider.notifier).aktivSetzen(vehicle.id);
                 },
@@ -93,6 +96,14 @@ class VehiclesListScreen extends ConsumerWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => VehicleFormScreen(vehicleId: vehicleId),
+      ),
+    );
+  }
+
+  void _wartung(BuildContext context, Vehicle vehicle) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WartungScreen(vehicle: vehicle),
       ),
     );
   }

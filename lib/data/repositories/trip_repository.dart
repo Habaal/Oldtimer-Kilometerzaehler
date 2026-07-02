@@ -62,15 +62,20 @@ class TripRepository {
   }
 
   /// Berechnet die Gesamtkilometer für ein Fahrzeug in einem Zeitraum.
+  /// Mit [nurPrivat] werden nur Privatfahrten gezählt (für den Sachbezug).
   Future<double> gesamtKm(
     String vehicleId, {
     DateTime? von,
     DateTime? bis,
+    bool nurPrivat = false,
   }) async {
     final db = await _dbHelper.database;
     var where = 'vehicle_id = ? AND end_timestamp IS NOT NULL';
     final whereArgs = <dynamic>[vehicleId];
 
+    if (nurPrivat) {
+      where += ' AND ist_firmenfahrt = 0';
+    }
     if (von != null) {
       where += ' AND start_timestamp >= ?';
       whereArgs.add(von.toIso8601String());

@@ -49,6 +49,21 @@ class Tables {
     )
   ''';
 
+  static const String createWartungen = '''
+    CREATE TABLE wartungen (
+      id TEXT PRIMARY KEY,
+      vehicle_id TEXT NOT NULL,
+      typ TEXT NOT NULL,
+      datum TEXT NOT NULL,
+      kilometerstand REAL,
+      notiz TEXT,
+      FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+    )
+  ''';
+
+  static const String indexWartungenVehicleId =
+      'CREATE INDEX idx_wartungen_vehicle_id ON wartungen(vehicle_id)';
+
   static const String indexTripsVehicleId =
       'CREATE INDEX idx_trips_vehicle_id ON trips(vehicle_id)';
 

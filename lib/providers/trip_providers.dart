@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../data/models/trip.dart';
 import '../data/repositories/trip_repository.dart';
+import 'statistics_providers.dart';
 
 final tripRepositoryProvider = Provider<TripRepository>((ref) {
   return TripRepository();
@@ -47,6 +48,15 @@ class TripCrud {
 
   TripCrud(this._ref);
 
+  /// Fahrtenliste und alle km-Statistiken neu laden.
+  void _allesNeuLaden() {
+    _ref.invalidate(tripsProvider);
+    _ref.invalidate(jahresKmProvider);
+    _ref.invalidate(monatsKmProvider);
+    _ref.invalidate(gesamtKmProvider);
+    _ref.invalidate(privateJahresKmProvider);
+  }
+
   Future<void> manuellErstellen({
     required String vehicleId,
     required DateTime startTimestamp,
@@ -71,18 +81,18 @@ class TripCrud {
       kilometerstandEnde: kilometerstandEnde,
     );
     await repo.einfuegen(trip);
-    _ref.invalidate(tripsProvider);
+    _allesNeuLaden();
   }
 
   Future<void> aktualisieren(Trip trip) async {
     final repo = _ref.read(tripRepositoryProvider);
     await repo.aktualisieren(trip);
-    _ref.invalidate(tripsProvider);
+    _allesNeuLaden();
   }
 
   Future<void> loeschen(String id) async {
     final repo = _ref.read(tripRepositoryProvider);
     await repo.loeschen(id);
-    _ref.invalidate(tripsProvider);
+    _allesNeuLaden();
   }
 }

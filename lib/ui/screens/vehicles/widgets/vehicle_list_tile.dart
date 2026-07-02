@@ -9,6 +9,7 @@ class VehicleListTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onAktivieren;
   final VoidCallback onLoeschen;
+  final VoidCallback onWartung;
 
   const VehicleListTile({
     super.key,
@@ -16,6 +17,7 @@ class VehicleListTile extends StatelessWidget {
     required this.onTap,
     required this.onAktivieren,
     required this.onLoeschen,
+    required this.onWartung,
   });
 
   @override
@@ -56,6 +58,8 @@ class VehicleListTile extends StatelessWidget {
                 switch (value) {
                   case 'bearbeiten':
                     onTap();
+                  case 'wartung':
+                    onWartung();
                   case 'aktivieren':
                     onAktivieren();
                   case 'loeschen':
@@ -66,6 +70,10 @@ class VehicleListTile extends StatelessWidget {
                 const PopupMenuItem(
                   value: 'bearbeiten',
                   child: Text('Bearbeiten'),
+                ),
+                const PopupMenuItem(
+                  value: 'wartung',
+                  child: Text('Wartung & Service'),
                 ),
                 if (!vehicle.aktiv)
                   const PopupMenuItem(

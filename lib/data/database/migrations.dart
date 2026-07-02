@@ -19,6 +19,23 @@ class Migrations {
     await _spalteHinzufuegenFallsFehlt(db, 'trips', 'kilometerstand_ende', 'REAL');
   }
 
+  static Future<void> v3ZuV4(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS wartungen (
+        id TEXT PRIMARY KEY,
+        vehicle_id TEXT NOT NULL,
+        typ TEXT NOT NULL,
+        datum TEXT NOT NULL,
+        kilometerstand REAL,
+        notiz TEXT,
+        FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_wartungen_vehicle_id ON wartungen(vehicle_id)',
+    );
+  }
+
   static Future<void> _spalteHinzufuegenFallsFehlt(
     Database db,
     String tabelle,

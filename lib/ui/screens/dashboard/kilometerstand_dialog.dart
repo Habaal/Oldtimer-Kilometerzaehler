@@ -133,7 +133,7 @@ class _KilometerstandDialogState extends State<KilometerstandDialog> {
                     children: [
                       RadioListTile<bool>(
                         title: const Text('Privatfahrt'),
-                        secondary: const Icon(Icons.person),
+                        secondary: const Icon(Icons.home, color: Colors.green),
                         value: false,
                         groupValue: _istFirmenfahrt,
                         onChanged: (v) => setState(() => _istFirmenfahrt = v!),
@@ -141,7 +141,8 @@ class _KilometerstandDialogState extends State<KilometerstandDialog> {
                       const Divider(height: 1),
                       RadioListTile<bool>(
                         title: const Text('Firmenfahrt'),
-                        secondary: const Icon(Icons.business),
+                        secondary: const Icon(Icons.business_center,
+                            color: Colors.orange),
                         value: true,
                         groupValue: _istFirmenfahrt,
                         onChanged: (v) => setState(() => _istFirmenfahrt = v!),

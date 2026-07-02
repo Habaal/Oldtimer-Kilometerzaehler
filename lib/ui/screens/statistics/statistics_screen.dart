@@ -5,6 +5,7 @@ import '../../../l10n/app_de.dart';
 import '../../../providers/statistics_providers.dart';
 import '../../../providers/vehicle_providers.dart';
 import '../../shared/loading_indicator.dart';
+import 'sachbezug_screen.dart';
 import 'widgets/monthly_bar_chart.dart';
 import 'widgets/year_comparison_card.dart';
 
@@ -81,6 +82,31 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                     setState(() => _selectedVehicleId = id),
               ),
               const SizedBox(height: 16),
+
+              // Sachbezugrechner (nur für Firmenwagen)
+              if (vehicle.istFirmenwagen) ...[
+                Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.orange.shade100,
+                      child: const Icon(Icons.business_center,
+                          color: Colors.orange),
+                    ),
+                    title: const Text('Sachbezugrechner'),
+                    subtitle: const Text(
+                        'Monatlichen Sachbezug für die Privatnutzung berechnen'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => SachbezugScreen(vehicle: vehicle),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Jahresvergleich
               diesesJahrKm.when(

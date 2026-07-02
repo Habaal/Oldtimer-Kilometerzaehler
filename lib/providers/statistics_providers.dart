@@ -45,3 +45,15 @@ final gesamtKmProvider =
   final repo = ref.read(tripRepositoryProvider);
   return repo.gesamtKm(vehicleId);
 });
+
+/// Private Kilometer für ein Fahrzeug in einem Jahr (für den Sachbezug).
+final privateJahresKmProvider =
+    FutureProvider.family<double, JahresKmParams>((ref, params) async {
+  final repo = ref.read(tripRepositoryProvider);
+  return repo.gesamtKm(
+    params.vehicleId,
+    von: DateTime(params.jahr, 1, 1),
+    bis: DateTime(params.jahr, 12, 31, 23, 59, 59),
+    nurPrivat: true,
+  );
+});
