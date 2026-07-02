@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../l10n/app_de.dart';
@@ -78,7 +79,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           content: const Text(
             'Damit die Kilometererfassung auch bei gesperrtem Bildschirm '
             'funktioniert, muss der Standortzugriff auf "Immer" gesetzt werden.\n\n'
-            'Gehe zu:\nEinstellungen > Oldtimer KM-Log > Standort > Immer',
+            'Gehe zu:\nEinstellungen > Drivio > Standort > Immer',
           ),
           actions: [
             TextButton(
@@ -194,7 +195,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppDe.appName),
+        titleSpacing: 0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              'assets/via-lab-logo.svg',
+              height: 22,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.onSurface,
+                BlendMode.srcIn,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(AppDe.appName),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),

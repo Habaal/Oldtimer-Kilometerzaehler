@@ -10,7 +10,7 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: OldtimerKmLogApp(),
+      child: DrivioApp(),
     ),
   );
 }

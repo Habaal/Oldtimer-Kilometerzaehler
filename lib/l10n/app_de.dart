@@ -2,7 +2,8 @@ class AppDe {
   AppDe._();
 
   // App
-  static const String appName = 'Oldtimer KM-Log';
+  static const String appName = 'Drivio';
+  static const String firmenName = 'Via Lab';
 
   // Navigation
   static const String dashboard = 'Dashboard';

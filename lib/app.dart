@@ -6,8 +6,8 @@ import 'l10n/app_de.dart';
 import 'ui/screens/settings/settings_screen.dart';
 import 'ui/shared/app_scaffold.dart';
 
-class OldtimerKmLogApp extends StatelessWidget {
-  const OldtimerKmLogApp({super.key});
+class DrivioApp extends StatelessWidget {
+  const DrivioApp({super.key});
 
   @override
   Widget build(BuildContext context) {

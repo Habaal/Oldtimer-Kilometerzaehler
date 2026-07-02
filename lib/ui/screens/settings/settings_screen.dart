@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/repositories/location_point_repository.dart';
 import '../../../l10n/app_de.dart';
@@ -119,13 +120,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _sektionsHeader(theme, AppDe.info),
           const ListTile(
             leading: Icon(Icons.info_outline),
-            title: Text('${AppDe.version} 1.0.0'),
+            title: Text('${AppDe.appName} · ${AppDe.version} 1.0.0'),
           ),
           const ListTile(
             leading: Icon(Icons.shield_outlined),
             title: Text(AppDe.datenschutz),
             subtitle: Text(AppDe.datenschutzText),
           ),
+          const SizedBox(height: 24),
+          Center(
+            child: Column(
+              children: [
+                SvgPicture.asset(
+                  'assets/via-lab-logo.svg',
+                  height: 40,
+                  colorFilter: ColorFilter.mode(
+                    theme.colorScheme.onSurface,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppDe.firmenName,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'entwickelt von ${AppDe.firmenName}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );

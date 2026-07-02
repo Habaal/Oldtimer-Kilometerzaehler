@@ -145,7 +145,7 @@ class ExportService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(
-              'Oldtimer KM-Log',
+              'Drivio · Via Lab',
               style: const pw.TextStyle(fontSize: 8),
             ),
             pw.Text(

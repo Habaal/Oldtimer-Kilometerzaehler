@@ -1,5 +1,5 @@
 name: oldtimer_km_log
-description: Automatische Kilometererfassung per GPS für Oldtimer-Fahrzeuge.
+description: Drivio – Automatische Kilometererfassung per GPS. Von Via Lab.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -47,6 +47,9 @@ dependencies:
   # iOS 26 Liquid Glass
   native_glass_navbar: ^1.0.2
 
+  # Logo (SVG)
+  flutter_svg: ^2.0.10+1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,3 +57,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/via-lab-logo.svg
