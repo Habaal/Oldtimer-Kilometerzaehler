@@ -20,10 +20,14 @@ class TripHistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<TripHistoryScreen> createState() => _TripHistoryScreenState();
 }
 
+/// Filter für den Fahrttyp in der Fahrtenliste.
+enum FahrtTypFilter { alle, privat, firma }
+
 class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
   String? _selectedVehicleId;
   DateTime? _von;
   DateTime? _bis;
+  FahrtTypFilter _typFilter = FahrtTypFilter.alle;
 
   @override
   Widget build(BuildContext context) {
@@ -90,25 +94,68 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                   },
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: SegmentedButton<FahrtTypFilter>(
+                  segments: const [
+                    ButtonSegment(
+                      value: FahrtTypFilter.alle,
+                      label: Text('Alle'),
+                    ),
+                    ButtonSegment(
+                      value: FahrtTypFilter.privat,
+                      label: Text('Privat'),
+                      icon: Icon(Icons.home, size: 18),
+                    ),
+                    ButtonSegment(
+                      value: FahrtTypFilter.firma,
+                      label: Text('Firma'),
+                      icon: Icon(Icons.business_center, size: 18),
+                    ),
+                  ],
+                  selected: {_typFilter},
+                  onSelectionChanged: (auswahl) {
+                    setState(() => _typFilter = auswahl.first);
+                  },
+                ),
+              ),
               const SizedBox(height: 8),
               Expanded(
                 child: trips.when(
                   loading: () => const LoadingIndicator(),
                   error: (e, _) => Center(child: Text('$e')),
-                  data: (liste) {
+                  data: (alleTrips) {
+                    final liste = switch (_typFilter) {
+                      FahrtTypFilter.alle => alleTrips,
+                      FahrtTypFilter.privat =>
+                        alleTrips.where((t) => !t.istFirmenfahrt).toList(),
+                      FahrtTypFilter.firma =>
+                        alleTrips.where((t) => t.istFirmenfahrt).toList(),
+                    };
                     if (liste.isEmpty) {
-                      return const Center(
+                      // Unterscheiden: gar keine Fahrten vs. nur weggefiltert
+                      final nurGefiltert = alleTrips.isNotEmpty;
+                      return Center(
                         child: Padding(
-                          padding: EdgeInsets.all(32),
+                          padding: const EdgeInsets.all(32),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.route_outlined, size: 64),
-                              SizedBox(height: 16),
-                              Text(AppDe.keinefahrten),
-                              SizedBox(height: 8),
-                              Text(AppDe.keinefahrtenInfo,
-                                  textAlign: TextAlign.center),
+                              const Icon(Icons.route_outlined, size: 64),
+                              const SizedBox(height: 16),
+                              Text(nurGefiltert
+                                  ? (_typFilter == FahrtTypFilter.firma
+                                      ? 'Keine Firmenfahrten'
+                                      : 'Keine Privatfahrten')
+                                  : AppDe.keinefahrten),
+                              const SizedBox(height: 8),
+                              Text(
+                                nurGefiltert
+                                    ? 'Für diesen Filter gibt es keine Fahrten. '
+                                        'Tippe auf "Alle", um alle Fahrten zu sehen.'
+                                    : AppDe.keinefahrtenInfo,
+                                textAlign: TextAlign.center,
+                              ),
                             ],
                           ),
                         ),
