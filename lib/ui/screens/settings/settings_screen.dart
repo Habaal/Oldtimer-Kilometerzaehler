@@ -148,10 +148,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'entwickelt von ${AppDe.firmenName}',
+                  '${AppDe.appName} – entwickelt von ${AppDe.firmenName}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '© ${DateTime.now().year} ${AppDe.firmenName}. '
+                  'Alle Rechte vorbehalten.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
