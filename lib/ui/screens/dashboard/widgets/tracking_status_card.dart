@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/extensions.dart';
 import '../../../../l10n/app_de.dart';
 import '../../../../services/trip_detection_service.dart';
+import '../../../shared/glass.dart';
 
 class TrackingStatusCard extends StatelessWidget {
   final bool serviceAktiv;
@@ -26,7 +27,8 @@ class TrackingStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
+    return GlassCard(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

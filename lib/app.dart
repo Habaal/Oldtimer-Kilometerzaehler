@@ -22,6 +22,16 @@ class OldtimerKmLogApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      // Hintergrundverlauf hinter allen (transparenten) Screens,
+      // damit die Liquid-Glass-Flächen etwas zum Brechen haben.
+      builder: (context, child) {
+        return DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.hintergrundGradient,
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: const AppScaffold(),
       routes: {
         '/settings': (_) => const SettingsScreen(),

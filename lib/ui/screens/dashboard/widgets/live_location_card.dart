@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/glass.dart';
+
 class LiveLocationCard extends StatelessWidget {
   final double lat;
   final double lng;
@@ -18,7 +20,8 @@ class LiveLocationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
+    return GlassCard(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -57,8 +60,11 @@ class LiveLocationCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.white.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 children: [

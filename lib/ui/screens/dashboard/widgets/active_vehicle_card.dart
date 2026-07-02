@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../data/models/vehicle.dart';
 import '../../../../l10n/app_de.dart';
+import '../../../shared/glass.dart';
 
 class ActiveVehicleCard extends StatelessWidget {
   final Vehicle? vehicle;
@@ -18,7 +19,8 @@ class ActiveVehicleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (vehicle == null) {
-      return Card(
+      return GlassCard(
+        margin: EdgeInsets.zero,
         child: ListTile(
           leading: const CircleAvatar(
             child: Icon(Icons.directions_car),
@@ -32,7 +34,8 @@ class ActiveVehicleCard extends StatelessWidget {
       );
     }
 
-    return Card(
+    return GlassCard(
+      margin: EdgeInsets.zero,
       child: ListTile(
         leading: CircleAvatar(
           backgroundImage: vehicle!.fotoPath != null

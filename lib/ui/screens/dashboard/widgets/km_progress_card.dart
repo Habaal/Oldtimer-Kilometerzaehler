@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions.dart';
 import '../../../../l10n/app_de.dart';
+import '../../../shared/glass.dart';
 
 class KmProgressCard extends StatelessWidget {
   final double aktuelleKm;
@@ -20,7 +21,8 @@ class KmProgressCard extends StatelessWidget {
         ? (aktuelleKm / limitKm!).clamp(0.0, 1.0)
         : null;
 
-    return Card(
+    return GlassCard(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
