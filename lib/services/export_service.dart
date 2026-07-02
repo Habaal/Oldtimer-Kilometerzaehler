@@ -35,6 +35,7 @@ class ExportService {
       'Startzeit',
       'Endzeit',
       'Distanz (km)',
+      'Fahrttyp',
       'Startort',
       'Zielort',
       'Erfassung',
@@ -42,14 +43,22 @@ class ExportService {
 
     final rows = <List<String>>[header];
     double gesamtKm = 0.0;
+    double privatKm = 0.0;
+    double firmenKm = 0.0;
 
     for (final fahrt in fahrten) {
       gesamtKm += fahrt.distanceKm;
+      if (fahrt.istFirmenfahrt) {
+        firmenKm += fahrt.distanceKm;
+      } else {
+        privatKm += fahrt.distanceKm;
+      }
       rows.add([
         _datumsFormat.format(fahrt.startTimestamp),
         _zeitFormat.format(fahrt.startTimestamp),
         fahrt.endTimestamp != null ? _zeitFormat.format(fahrt.endTimestamp!) : '',
         _kmFormat.format(fahrt.distanceKm),
+        fahrt.istFirmenfahrt ? 'Firma' : 'Privat',
         fahrt.startOrt ?? '',
         fahrt.endOrt ?? '',
         fahrt.manuellErfasst ? 'Manuell' : 'GPS',
@@ -57,7 +66,15 @@ class ExportService {
     }
 
     rows.add([]);
-    rows.add(['Gesamtkilometer', '', '', _kmFormat.format(gesamtKm), '', '', '']);
+    rows.add([
+      'Gesamtkilometer', '', '', _kmFormat.format(gesamtKm), '', '', '', ''
+    ]);
+    rows.add([
+      'davon Privatfahrten', '', '', _kmFormat.format(privatKm), '', '', '', ''
+    ]);
+    rows.add([
+      'davon Firmenfahrten', '', '', _kmFormat.format(firmenKm), '', '', '', ''
+    ]);
 
     final csvString = const ListToCsvConverter(
       fieldDelimiter: ';',
@@ -82,8 +99,15 @@ class ExportService {
   ) async {
     final pdf = pw.Document();
     double gesamtKm = 0.0;
+    double privatKm = 0.0;
+    double firmenKm = 0.0;
     for (final f in fahrten) {
       gesamtKm += f.distanceKm;
+      if (f.istFirmenfahrt) {
+        firmenKm += f.distanceKm;
+      } else {
+        privatKm += f.distanceKm;
+      }
     }
 
     final zeitraumText =
@@ -137,12 +161,13 @@ class ExportService {
                 const pw.BoxDecoration(color: PdfColors.grey300),
             cellPadding: const pw.EdgeInsets.all(4),
             cellAlignment: pw.Alignment.centerLeft,
-            headers: ['Datum', 'Start', 'Ende', 'km', 'Von', 'Nach'],
+            headers: ['Datum', 'Start', 'Ende', 'km', 'Typ', 'Von', 'Nach'],
             data: fahrten.map((f) => [
               _datumsFormat.format(f.startTimestamp),
               _zeitFormat.format(f.startTimestamp),
               f.endTimestamp != null ? _zeitFormat.format(f.endTimestamp!) : '-',
               _kmFormat.format(f.distanceKm),
+              f.istFirmenfahrt ? 'Firma' : 'Privat',
               f.startOrt ?? '-',
               f.endOrt ?? '-',
             ]).toList(),
@@ -159,6 +184,17 @@ class ExportService {
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Text(
+                'davon Privatfahrten: ${_kmFormat.format(privatKm)} km · '
+                'davon Firmenfahrten: ${_kmFormat.format(firmenKm)} km',
+                style: const pw.TextStyle(fontSize: 12),
               ),
             ],
           ),

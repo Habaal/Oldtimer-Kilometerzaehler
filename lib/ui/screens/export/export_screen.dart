@@ -175,6 +175,10 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                 data: (liste) {
                   final gesamtKm = liste.fold<double>(
                       0.0, (s, t) => s + t.distanceKm);
+                  final firmenKm = liste
+                      .where((t) => t.istFirmenfahrt)
+                      .fold<double>(0.0, (s, t) => s + t.distanceKm);
+                  final privatKm = gesamtKm - firmenKm;
                   return Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -199,6 +203,18 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                               Text(gesamtKm.kmFormatiert,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('davon Privat / Firma:'),
+                              Text(
+                                '${privatKm.kmFormatiert} / '
+                                '${firmenKm.kmFormatiert}',
+                              ),
                             ],
                           ),
                         ],
