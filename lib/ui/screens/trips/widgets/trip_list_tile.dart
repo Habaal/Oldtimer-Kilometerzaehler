@@ -59,9 +59,15 @@ class TripListTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      trip.startTimestamp.datumFormatiert,
-                      style: theme.textTheme.titleSmall,
+                    Row(
+                      children: [
+                        Text(
+                          trip.startTimestamp.datumFormatiert,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        const SizedBox(width: 8),
+                        _fahrtTypChip(theme),
+                      ],
                     ),
                     Text(
                       '${trip.startTimestamp.zeitFormatiert}'
@@ -76,6 +82,8 @@ class TripListTile extends StatelessWidget {
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                   ],
                 ),
@@ -135,6 +143,39 @@ class TripListTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _fahrtTypChip(ThemeData theme) {
+    if (trip.istFirmenfahrt) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          'Firma',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: Colors.orange.shade900,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'Privat',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: Colors.green.shade800,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

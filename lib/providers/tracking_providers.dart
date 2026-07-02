@@ -108,6 +108,7 @@ class TrackingController {
     );
 
     _tripDetection!.fahrtTypSetzen(
+      vehicleId: vehicleId,
       istFirmenfahrt: istFirmenfahrt,
       kilometerstandStart: kilometerstandStart,
     );

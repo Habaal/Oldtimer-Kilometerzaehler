@@ -169,10 +169,16 @@ class TripDetectionService {
     onZustandGeaendert?.call(neuerZustand);
   }
 
+  String _vehicleId = '';
   bool _istFirmenfahrt = false;
   double? _kilometerstandStart;
 
-  void fahrtTypSetzen({bool istFirmenfahrt = false, double? kilometerstandStart}) {
+  void fahrtTypSetzen({
+    required String vehicleId,
+    bool istFirmenfahrt = false,
+    double? kilometerstandStart,
+  }) {
+    _vehicleId = vehicleId;
     _istFirmenfahrt = istFirmenfahrt;
     _kilometerstandStart = kilometerstandStart;
   }
@@ -193,7 +199,7 @@ class TripDetectionService {
 
     final trip = Trip(
       id: id,
-      vehicleId: vehicleId ?? '',
+      vehicleId: vehicleId ?? _vehicleId,
       startTimestamp: DateTime.now(),
       startOrt: startOrt,
       istFirmenfahrt: _istFirmenfahrt,

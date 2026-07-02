@@ -153,7 +153,7 @@ class TrackingStatusCard extends StatelessWidget {
       case TrackingZustand.idle:
         return 'Warte auf Fahrtbeginn…';
       case TrackingZustand.detecting:
-        return 'Bewegung erkannt – bestätige Fahrtbeginn…';
+        return 'Bewegung erkannt – Fahrt startet automatisch…';
       case TrackingZustand.tripActive:
         return 'Fahrt wird aufgezeichnet';
       case TrackingZustand.stopping:
