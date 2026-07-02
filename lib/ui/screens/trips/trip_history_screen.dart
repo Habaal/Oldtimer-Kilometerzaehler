@@ -42,10 +42,12 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
             );
           }
 
-          // Standard: aktives Fahrzeug
-          final vehicleId = _selectedVehicleId ??
-              activeVehicle.value?.id ??
-              vehicleList.first.id;
+          // Standard: aktives Fahrzeug (validiert gegen die Liste)
+          final ids = vehicleList.map((v) => v.id).toSet();
+          final kandidat = _selectedVehicleId ?? activeVehicle.value?.id;
+          final vehicleId = (kandidat != null && ids.contains(kandidat))
+              ? kandidat
+              : vehicleList.first.id;
 
           final filter = TripsFilter(
             vehicleId: vehicleId,

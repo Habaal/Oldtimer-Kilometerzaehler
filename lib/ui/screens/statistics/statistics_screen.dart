@@ -41,9 +41,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
             return const Center(child: Text(AppDe.keinFahrzeug));
           }
 
-          final vehicleId = _selectedVehicleId ??
-              activeVehicle.value?.id ??
-              vehicleList.first.id;
+          final ids = vehicleList.map((v) => v.id).toSet();
+          final kandidat = _selectedVehicleId ?? activeVehicle.value?.id;
+          final vehicleId = (kandidat != null && ids.contains(kandidat))
+              ? kandidat
+              : vehicleList.first.id;
 
           final vehicle = vehicleList.firstWhere((v) => v.id == vehicleId);
 
